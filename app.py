@@ -23,7 +23,7 @@ except Exception:
     # 本地盲测保底（如果本地运行时没配 secrets）
     GEMINI_API_KEY = "AQ.Ab8RN6KUXQqDGOOvPkruKSpw2xgc8zUKu8WKMVfXeBhVw0XWqQ"
 
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-3.5-flash"
 
 # 直接初始化客户端
 client = genai.Client(api_key=GEMINI_API_KEY)

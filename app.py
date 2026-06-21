@@ -14,16 +14,15 @@ import json
 import re
 
 # ============================================================
-# 🔐 核心配置 — 移动端一步到位，安全读取云端保险箱
+# 🔐 核心配置 — 安全读取云端保险箱（彻底移除所有硬编码字符串）
 # ============================================================
-# 这样写，GitHub 上的黑客和谷歌机器人永远看不到你的真实 Key
-try:
+if "GEMINI_API_KEY" in st.secrets:
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-except Exception:
-    # 本地盲测保底（如果本地运行时没配 secrets）
-    GGEMINI_API_KEY = "Gemini API Key"
+else:
+    # 彻底留空，本地运行报错也无所谓，绝对不留任何钥匙痕迹，防止 GitHub 拦截
+    GEMINI_API_KEY = ""
 
-GEMINI_MODEL = "gemini-3.5-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 
 # 直接初始化客户端
 client = genai.Client(api_key=GEMINI_API_KEY)

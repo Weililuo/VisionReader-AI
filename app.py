@@ -27,7 +27,7 @@ GEMINI_MODEL = "gemini-2.5-flash"
 
 # Pollinations fixed quality suffix — cinematic conceptual masterpiece render
 STYLE_SUFFIX = (
-    ", An immense and spectacular conceptual masterpiece, breathtaking pure fantasy or sci-fi geologic landscape scenery, giant scale background environment, dramatic dark atmospheric aesthetic, epic cinematic lighting, masterpiece, 8k resolution, ABSOLUTELY NO humans, NO humanoids, NO animals, NO monsters, NO characters, empty pure landscape environment only"
+    ", A highly precise visual realization of the provided text, literal translation of the described scene into a cinematic conceptual masterpiece, strict fidelity to the exact text description, absolute zero AI hallucinations, do NOT invent or add any characters, creatures, or objects not mentioned in the text, focus entirely on rendering the exact background, atmosphere, and environment described above, dark atmospheric aesthetic, masterpiece, 8k resolution"
 )
 
 # ============================================================

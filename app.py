@@ -113,6 +113,16 @@ st.markdown(
         padding-top: 1rem !important;
     }
 
+    /* H3 headings — scaled down one notch for refined mobile typography */
+    h3 {
+        font-family: 'Courier New', monospace !important;
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
     /* Global body — monospace */
     body, p, div, span, label, button, input, textarea, caption, .stMarkdown {
         font-family: 'Courier New', monospace !important;
@@ -463,29 +473,28 @@ if upload_file is not None:
         with st.status("📖 Reading Page...", expanded=True) as status:
 
             # ================================================
-            # Stage 1: Gemini Pure OCR — extract Chinese text
+            # Stage 1: Gemini Pure OCR — bilingual CN/EN extraction
             # ================================================
             st.write("🔍 Extracting Text...")
 
-            ocr_prompt = """Your sole task is to accurately recognize and extract all visible Chinese text from this image.
+            ocr_prompt = """You are an expert OCR specialist. Your sole task is to accurately recognize and extract all visible text (both Chinese and English) from this image.
 
 Rules:
-1. Preserve the original paragraph structure, line breaks, and punctuation exactly as they appear.
-2. If there is no Chinese text in the image, return an empty string.
-3. Do not add any explanations, commentary, or extra content of any kind.
-4. Do not translate, do not summarize — perform pure OCR extraction only.
+1. Maintain the original paragraph structure, line breaks, and punctuation exactly.
+2. Do not add any extra explanations, notes, or contextual commentary.
+3. Perform pure, literal OCR extraction in its original language.
 
-Return a JSON object with a single key "chinese_text" whose value is all the Chinese text you recognized."""
+Return a JSON object containing a single key "extracted_text" holding the complete extracted content."""
 
             json_schema = {
                 "type": "OBJECT",
                 "properties": {
-                    "chinese_text": {"type": "STRING"}
+                    "extracted_text": {"type": "STRING"}
                 },
-                "required": ["chinese_text"]
+                "required": ["extracted_text"]
             }
 
-            chinese_text = ""
+            extracted_text = ""
 
             try:
                 response = client.models.generate_content(
@@ -502,24 +511,24 @@ Return a JSON object with a single key "chinese_text" whose value is all the Chi
 
                 raw_response = response.text.strip()
                 result = json.loads(raw_response)
-                chinese_text = result.get("chinese_text", "").strip()
+                extracted_text = result.get("extracted_text", "").strip()
 
             except Exception:
-                chinese_text = "OCR extraction failed. Please retry with a clearer book page photo."
+                extracted_text = "OCR extraction failed. Please retry with a clearer book page photo."
 
-            st.session_state.ocr_text = chinese_text
+            st.session_state.ocr_text = extracted_text
 
             # ================================================
             # Stage 2: Direct Pollinations — fixed seed 42520
             # ================================================
-            if chinese_text:
+            if extracted_text:
                 status.update(
                     label="🎨 Rendering Scenery...",
                     state="running",
                 )
 
                 # Truncate to 150 chars maximum to prevent URL-overlength bugs
-                truncated_text = chinese_text[:150]
+                truncated_text = extracted_text[:150]
                 final_prompt = truncated_text + STYLE_SUFFIX
                 encoded_prompt = urllib.parse.quote(final_prompt, safe="")
                 seed_num = 42520

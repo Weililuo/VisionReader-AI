@@ -1,8 +1,8 @@
 """
 ============================================================
-VisionReader AI · 随身视界阅读器  v5.0 纯净重构
-高清上传 → 纯中文 OCR → 直连 Pollinations 生图
-风格：高级极简黑色直角像素风（Premium Pixel Art）
+VisionReader AI · Premium Pixel Art Book Reader  v6.0  Final
+HD Upload → Pure OCR → Direct Pollinations Image Generation
+Style: Minimal Black Rectilinear Pixel Art (Production Ready)
 ============================================================
 """
 
@@ -16,7 +16,7 @@ import io
 import hashlib
 
 # ============================================================
-# 🔐 核心配置
+# 🔐 Core Configuration
 # ============================================================
 if "GEMINI_API_KEY" in st.secrets:
     GEMINI_API_KEY = str(st.secrets["GEMINI_API_KEY"]).strip()
@@ -25,7 +25,7 @@ else:
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
-# Pollinations 固定画质后缀（确定性生图，固定随机种子 42520）
+# Pollinations fixed quality suffix (deterministic generation, fixed seed 42520)
 STYLE_SUFFIX = (
     ", A comprehensive widescreen ensemble poster, an adventuring party, grouping all"
     " standard characters described into a unified fantasy cinematic scenery,"
@@ -33,31 +33,31 @@ STYLE_SUFFIX = (
 )
 
 # ============================================================
-# 📱 Streamlit 页面配置
+# 📱 Streamlit Page Configuration
 # ============================================================
 st.set_page_config(
-    page_title="VisionReader AI · 像素阅读器",
+    page_title="VisionReader AI · Pixel Reader",
     page_icon="📖",
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
         "Get Help": None,
         "Report a bug": None,
-        "About": "VisionReader AI — 拍下书页，看见故事",
+        "About": "VisionReader AI — Snap a page, see the story unfold.",
     },
 )
 
 if not GEMINI_API_KEY:
     st.error(
-        "未配置 Gemini API Key。请在 `.streamlit/secrets.toml`（本地）"
-        "或 Streamlit Cloud Secrets 中添加 `GEMINI_API_KEY`。"
+        "Gemini API Key not configured. Please add `GEMINI_API_KEY` in"
+        " `.streamlit/secrets.toml` (local) or Streamlit Cloud Secrets."
     )
     st.stop()
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 # ============================================================
-# 🧠 会话状态初始化
+# 🧠 Session State Initialization
 # ============================================================
 if "upload_key" not in st.session_state:
     st.session_state.upload_key = 0
@@ -77,33 +77,33 @@ if "img_height" not in st.session_state:
     st.session_state.img_height = 0
 
 # ============================================================
-# 🎨 高级极简黑色像素风 CSS — 无扫描线、无街机词汇、纯净展示
+# 🎨 Premium Minimal Black Pixel-Art CSS — Clean & Production Ready
 # ============================================================
 st.markdown(
     """
 <style>
     /* ================================================
-       Premium Pixel Art · 高级像素阅读器主题
-       纯黑直角 · 像素蓝边框 · 无扫描线 · 高清展示
+       Premium Pixel Art · VisionReader Theme
+       Pure black · Pixel-blue borders · No scanlines
        ================================================ */
 
-    /* 全局纯黑底 */
+    /* Global pure black background */
     .stApp {
         background: #000000;
     }
 
-    /* 隐藏无关 chrome */
+    /* Hide irrelevant chrome */
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; }
 
-    /* 主容器 — 居中有留白 */
+    /* Main container — centered with breathing room */
     .main .block-container {
         max-width: 900px !important;
         padding: 2rem 1.5rem 3rem !important;
     }
 
-    /* 品牌标题 — 像素白，低调有力 */
+    /* Brand title — pixel white, understated power */
     h1 {
         font-family: 'Courier New', monospace !important;
         font-size: 2rem !important;
@@ -115,12 +115,12 @@ st.markdown(
         padding-top: 1rem !important;
     }
 
-    /* 全局正文 — 等宽像素字体 */
+    /* Global body — monospace pixel font */
     body, p, div, span, label, button, input, textarea, caption, .stMarkdown {
         font-family: 'Courier New', monospace !important;
     }
 
-    /* 副标题 / 引导语 — 像素蓝，精炼一行 */
+    /* Subtitle / tagline — pixel blue, one clean line */
     .subtitle {
         text-align: center;
         color: #4a90d9;
@@ -130,17 +130,28 @@ st.markdown(
     }
 
     /* ================================================
-       上传区 — 干净直角黑底像素框，温和包裹不魔改内部
+       Upload Zone — clean rectilinear pixel frame,
+       flat grey blocks, no text overlap artifacts
        ================================================ */
     [data-testid="stFileUploadDropzone"] {
         border-radius: 0px !important;
         border: 3px solid #0000ff !important;
         background: #0a0a0a !important;
-        padding: 2rem !important;
+        padding: 2.5rem 1.5rem !important;
+    }
+
+    /* Aggressively fix the "uploadupload" text overlap bug —
+       hide Streamlit's built-in button pseudo-text and label
+       that conflict with our pixel custom CSS */
+    div[data-testid="stFileUploader"] section button::before {
+        content: "" !important;
+    }
+    div[data-testid="stFileUploader"] label {
+        display: none !important;
     }
 
     /* ================================================
-       结果卡片 — 像素蓝直角边框
+       Result Cards — pixel-blue rectilinear border
        ================================================ */
     .result-card {
         background: #0a0a0a;
@@ -151,7 +162,7 @@ st.markdown(
         box-shadow: 4px 4px 0px #000080;
     }
 
-    /* OCR 文本框 — 青字黑底 */
+    /* OCR text area — cyan on black */
     .ocr-area textarea {
         background: #0a0a0a !important;
         border: 2px solid #0000ff !important;
@@ -163,7 +174,7 @@ st.markdown(
         padding: 0.8rem !important;
     }
 
-    /* 生成图片展示 — 像素蓝画框，无伪影 */
+    /* Generated image display — pixel-blue frame, no artifacts */
     .stImage img {
         border-radius: 0px !important;
         border: 3px solid #0000ff !important;
@@ -173,7 +184,7 @@ st.markdown(
     }
 
     /* ================================================
-       按钮 — 黑底蓝框像素大色块
+       Buttons — black fill, blue pixel border
        ================================================ */
     .stButton > button {
         border-radius: 0px !important;
@@ -199,7 +210,7 @@ st.markdown(
         box-shadow: 2px 2px 0px #000080 !important;
     }
 
-    /* 展开面板 */
+    /* Expander panels */
     .streamlit-expanderHeader {
         border-radius: 0px !important;
         background: #0a0a0a !important;
@@ -209,7 +220,7 @@ st.markdown(
         color: #4a90d9 !important;
     }
 
-    /* 状态组件 */
+    /* Status components */
     .stStatus {
         border-radius: 0px !important;
         border: 2px solid #0000ff !important;
@@ -217,7 +228,7 @@ st.markdown(
         font-family: 'Courier New', monospace !important;
     }
 
-    /* 分割线 — 像素蓝细线 */
+    /* Dividers — pixel-blue thin line */
     hr {
         border: none !important;
         border-top: 1px solid #0000ff !important;
@@ -225,7 +236,7 @@ st.markdown(
         opacity: 0.5;
     }
 
-    /* 底部 */
+    /* Footer */
     .footer {
         text-align: center;
         color: #333366;
@@ -235,7 +246,7 @@ st.markdown(
         letter-spacing: 0.05em;
     }
 
-    /* 滚动条 — 像素蓝窄条 */
+    /* Scrollbar — pixel-blue narrow */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #000000; }
     ::-webkit-scrollbar-thumb {
@@ -243,7 +254,7 @@ st.markdown(
         border-radius: 0px;
     }
 
-    /* 胶囊标签 — 像素风 */
+    /* Chip labels — pixel style */
     .chip {
         display: inline-block;
         padding: 0.25rem 0.8rem;
@@ -265,7 +276,7 @@ st.markdown(
         color: #ffb8ff;
     }
 
-    /* Streamlit 原生通知条 */
+    /* Streamlit native notification bars */
     .stAlert {
         border-radius: 0px !important;
         border: 2px solid #0000ff !important;
@@ -273,7 +284,7 @@ st.markdown(
         font-family: 'Courier New', monospace !important;
     }
 
-    /* 移动端适配 */
+    /* Mobile responsiveness */
     @media (max-width: 640px) {
         .main .block-container {
             padding: 1rem 1rem 3rem !important;
@@ -291,36 +302,36 @@ st.markdown(
 )
 
 # ============================================================
-# 🏠 品牌头部 — 精炼、高级
+# 🏠 Brand Header — refined, premium
 # ============================================================
 st.markdown(
     """
 <h1>📖 VisionReader AI</h1>
-<p class="subtitle">拍下书页或上传照片，看文字化为像素画境。</p>
+<p class="subtitle">Snap a book page or upload an image to transform novel text into pixel art scenery.</p>
 """,
     unsafe_allow_html=True,
 )
 
 # ============================================================
-# 📤 上传区 — 干净、原生、好点
+# 📤 Upload Zone — clean, native, tactile
 # ============================================================
 upload_file = st.file_uploader(
-    "选择书页照片（拍照或从相册选取）",
+    "Select Book Page (Takes photo via system rear-camera or choose from album)",
     type=["jpg", "jpeg", "png", "heic", "webp"],
     key=f"upload_{st.session_state.upload_key}",
-    help="支持 JPG / PNG / HEIC / WebP 格式。手机端将唤起原生相机。",
+    help="Supports JPG / PNG / HEIC / WebP formats. Mobile will invoke the native camera.",
     label_visibility="visible",
 )
 
 # ============================================================
-# 🧠 图像处理管线 — 纯中文 OCR → 直连 Pollinations
+# 🧠 Image Processing Pipeline — Pure OCR → Direct Pollinations
 # ============================================================
 if upload_file is not None:
-    # 读取图像字节
+    # Read image bytes
     img_bytes = upload_file.read()
     new_hash = hashlib.md5(img_bytes).hexdigest()
 
-    # 仅在新图像时处理
+    # Only process on new image
     if new_hash != st.session_state.img_hash:
         st.session_state.img_hash = new_hash
         st.session_state.img_bytes = img_bytes
@@ -330,18 +341,18 @@ if upload_file is not None:
         st.session_state.img_width = img.width
         st.session_state.img_height = img.height
 
-        # 书页快照预览（折叠）
-        with st.expander("👁️ 查看书页快照", expanded=False):
+        # Book page snapshot preview (collapsed)
+        with st.expander("👁️ View Book Page Snapshot", expanded=False):
             st.image(img, use_container_width=True)
-            st.caption(f"分辨率：{img.width} × {img.height} px")
+            st.caption(f"Resolution: {img.width} × {img.height} px")
 
-        # 主处理管线
-        with st.status("🔍 视觉大脑正在解析书页...", expanded=True) as status:
+        # Main processing pipeline
+        with st.status("🔍 Vision brain is parsing the book page...", expanded=True) as status:
 
             # ================================================
-            # 阶段 1：Gemini 纯 OCR — 只识别中文
+            # Stage 1: Gemini Pure OCR — extract Chinese text
             # ================================================
-            st.write("🔍 **阶段 1/2：精准识别书页中文文字...**")
+            st.write("🔍 **Stage 1/2: Extracting text from book page with precision...**")
 
             ocr_prompt = """你的唯一任务是精准识别并提取这张图片中所有可见的中文文字。
 
@@ -381,16 +392,16 @@ if upload_file is not None:
                 chinese_text = result.get("chinese_text", "").strip()
 
             except Exception:
-                chinese_text = "OCR 识别失败，请重试或更换更清晰的书页照片。"
+                chinese_text = "OCR extraction failed. Please retry with a clearer book page photo."
 
             st.session_state.ocr_text = chinese_text
 
             # ================================================
-            # 阶段 2：中文直连 Pollinations — 固定种子 42520
+            # Stage 2: Direct Pollinations — fixed seed 42520
             # ================================================
             if chinese_text:
                 status.update(
-                    label="🎨 阶段 2/2：正在将文字渲染为视觉画作...",
+                    label="🎨 Stage 2/2: Rendering text into visual pixel art...",
                     state="running",
                 )
 
@@ -403,22 +414,22 @@ if upload_file is not None:
                 )
 
                 status.update(
-                    label="🎉 渲染完成！", state="complete", expanded=False
+                    label="🎉 Rendering complete!", state="complete", expanded=False
                 )
             else:
-                status.update(label="⚠️ 未能提取有效文字", state="error")
+                status.update(label="⚠️ No valid text could be extracted", state="error")
 
             st.session_state.show_results = True
 
-        # 处理完成后重跑以渲染结果
+        # Rerun after processing to render results
         st.rerun()
 
     # ============================================================
-    # 🖼️ 展示结果
+    # 🖼️ Display Results
     # ============================================================
     if st.session_state.show_results:
 
-        # 重置按钮
+        # Reset button
         def reset_all():
             st.session_state.upload_key += 1
             st.session_state.img_hash = ""
@@ -428,7 +439,7 @@ if upload_file is not None:
             st.session_state.show_results = False
 
         st.button(
-            "📷 拍摄新书页",
+            "🔄 Scan New Page",
             on_click=reset_all,
             use_container_width=True,
             type="secondary",
@@ -436,23 +447,23 @@ if upload_file is not None:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 书页快照
-        with st.expander("👁️ 查看书页快照", expanded=False):
+        # Book page snapshot
+        with st.expander("👁️ View Book Page Snapshot", expanded=False):
             img = Image.open(io.BytesIO(st.session_state.img_bytes))
             st.image(img, use_container_width=True)
             st.caption(
-                f"分辨率：{st.session_state.img_width} × {st.session_state.img_height} px"
+                f"Resolution: {st.session_state.img_width} × {st.session_state.img_height} px"
             )
 
-        # ① OCR 中文文本
-        st.markdown("### 📝 识别的书页文字")
+        # ① OCR Extracted Text
+        st.markdown("### 🔍 Extracted Book Text")
         if st.session_state.ocr_text:
             st.markdown(
-                '<div class="result-card"><span class="chip ocr">🔍 OCR 识别结果</span>',
+                '<div class="result-card"><span class="chip ocr">OCR Result</span>',
                 unsafe_allow_html=True,
             )
             st.text_area(
-                "书页原文",
+                "Extracted Book Text",
                 value=st.session_state.ocr_text,
                 height=200,
                 key="ocr_display",
@@ -460,37 +471,37 @@ if upload_file is not None:
             )
             st.markdown("</div>", unsafe_allow_html=True)
         else:
-            st.info("未在图像中检测到中文字符。请确保书页文字清晰，重新拍摄。")
+            st.info("No characters were detected in the image. Please ensure the book text is legible and retake the photo.")
 
-        # ② AI 画作 — 全宽展示
+        # ② AI Visual Rendering — full-width display
         if st.session_state.final_image_url:
-            st.markdown("### 🖼️ AI 视觉渲染")
+            st.markdown("### 🎨 AI Visual Rendering")
             st.markdown(
                 '<div style="text-align:center;margin:0.4rem 0 0.6rem;">'
-                '<span class="chip art">🎨 画面由你的文字直接驱动</span></div>',
+                '<span class="chip art">Scene directly driven by your novel text.</span></div>',
                 unsafe_allow_html=True,
             )
             st.image(
                 st.session_state.final_image_url,
-                caption="书页文字的视觉具象化",
+                caption="Visual realization of the book page text",
                 use_container_width=True,
             )
 
-            # 直链
-            with st.expander("🔗 渲染直链", expanded=False):
+            # Direct link
+            with st.expander("🔗 Render Direct Link", expanded=False):
                 st.code(st.session_state.final_image_url, language="text")
 
-        # 错误回退
+        # Error fallback
         if not st.session_state.ocr_text and not st.session_state.final_image_url:
             st.error(
-                "VisionReader 未能从图像中提取有效文字。请尝试：\n\n"
-                "1. 确保书页光照充足、文字清晰\n"
-                "2. 将手机对准书页正上方拍摄\n"
-                "3. 选择高分辨率图片上传"
+                "VisionReader was unable to extract any valid text from the image. Please try:\n\n"
+                "1. Ensure the book page is well-lit and the text is legible\n"
+                "2. Position the camera directly above the page\n"
+                "3. Use a higher-resolution image for upload"
             )
 
 # ============================================================
-# 🏠 空状态引导 — 简洁像素框
+# 🏠 Empty State Guide — clean pixel frame
 # ============================================================
 else:
     st.markdown(
@@ -502,9 +513,9 @@ else:
         <div style="font-family:'Courier New',monospace;font-size:2.5rem;margin-bottom:0.8rem;
                     line-height:1;">📖</div>
         <div style="font-family:'Courier New',monospace;color:#4a90d9;font-size:0.82rem;line-height:2.0;">
-            在上方选择书页照片<br>
-            AI 将自动识别书中文字<br>
-            并根据原文为你生成像素视觉画作
+            Upload or snap a page above.<br>
+            Gemini will extract the text and render<br>
+            your premium pixel art masterpiece synchronously.
         </div>
     </div>
     """,
@@ -512,12 +523,12 @@ else:
     )
 
 # ============================================================
-# 📱 底部
+# 📱 Footer
 # ============================================================
 st.markdown(
     """
 <div class="footer">
-    VisionReader AI · 像素阅读器<br>
+    VisionReader AI · Pixel Book Reader<br>
     Powered by Gemini Vision &amp; Pollinations AI
 </div>
 """,

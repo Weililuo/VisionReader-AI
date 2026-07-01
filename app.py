@@ -25,13 +25,10 @@ else:
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
-# Pollinations fixed quality suffix — cinematic conceptual masterpiece render
-# v7.1: NO humans guard — forces focus on primary creatures / entities in text
+# Pollinations fixed quality suffix — landscape-first epic composition
+# v8.0: Geology-centric guard — environment dominates, subjects are accents
 STYLE_SUFFIX = (
-    ", A spectacular conceptual masterpiece, breathtaking fantasy cinematic scenery, "
-    "strictly focus on text subjects or pure landscape environment, "
-    "absolutely NO humans or humanoids unless explicitly named in the text, "
-    "epic lighting, dark atmospheric aesthetic, masterpiece, 8k resolution"
+    ", An immense and spectacular conceptual masterpiece, groundbreaking epic landscape driven primarily by the described geology or background, grand scale composition, text-described subjects or creatures must be secondary, subtle accents, less than 10% in frame size, NO humans unless explicitly named, hyper-detailed, epic lighting, dark atmospheric aesthetic, masterpiece, 8k resolution, cinematic, NO close-up"
 )
 
 # ============================================================
@@ -185,46 +182,69 @@ st.markdown(
     }
 
     /* ================================================
-       Upload Zone — clean rectilinear frame
-       v7.1: Selectors scoped ONLY to dropzone to avoid
-       hijacking the post-upload filename row
+       Upload Zone — Pixel Camera Entry
+       v8.0: Native DOM fully hidden; custom retro icons
        ================================================ */
-    [data-testid="stFileUploadDropzone"] {
-        border-radius: 0px !important;
+
+    /* Outer container: black box, blue pixel border */
+    [data-testid="stFileUploader"] {
+        position: relative !important;
+        background: #000000 !important;
         border: 3px solid #0000ff !important;
-        background: #0a0a0a !important;
+        border-radius: 0px !important;
         padding: 2.5rem 1.5rem !important;
+        text-align: center !important;
+        min-height: 130px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
-    /* ──  Brutal Fix: hide native uploader text ONLY in dropzone  ── */
-    [data-testid="stFileUploadDropzone"] button div {
-        display: none !important;
-    }
-    [data-testid="stFileUploadDropzone"] button::after {
-        content: "Upload or Snap Page" !important;
+    /* Custom pixel camera entry: 📸 + 🖼️ icons, single clean label */
+    [data-testid="stFileUploader"]::before {
+        content: "📸  🖼️\\A Scan or Upload";
+        white-space: pre !important;
         font-family: 'Courier New', monospace !important;
-        font-size: 0.95rem !important;
+        font-size: 1.3rem !important;
         color: #ffffff !important;
         letter-spacing: 0.06em !important;
+        display: block !important;
+        text-align: center !important;
+        line-height: 2 !important;
     }
-    [data-testid="stFileUploadDropzone"] button {
-        background-color: #0d0d1a !important;
-        border: 2px solid #0000ff !important;
-        border-radius: 0px !important;
-        padding: 1.5rem !important;
+
+    /* Brutal Fix: hide ALL native children of stFileUploader */
+    [data-testid="stFileUploader"] > label {
+        display: none !important;
+    }
+    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] button {
+        display: none !important;
+    }
+    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] [data-testid="stMarkdownContainer"] {
+        display: none !important;
+    }
+    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] small {
+        display: none !important;
+    }
+    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] div {
+        display: none !important;
+    }
+
+    /* Make dropzone invisible but still clickable as overlay */
+    [data-testid="stFileUploadDropzone"] {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
         width: 100% !important;
-    }
-    /* Hide the outer label that duplicates text */
-    div[data-testid="stFileUploader"] label {
-        display: none !important;
-    }
-    /* Also hide the small "Drag and drop file here" text */
-    [data-testid="stFileUploadDropzone"] [data-testid="stMarkdownContainer"] p {
-        display: none !important;
-    }
-    /* Keep only the file-size-limit hint if present, hide it too for cleanliness */
-    [data-testid="stFileUploadDropzone"] small {
-        display: none !important;
+        height: 100% !important;
+        opacity: 0 !important;
+        cursor: pointer !important;
+        z-index: 10 !important;
+        border: none !important;
+        background: transparent !important;
+        border-radius: 0px !important;
     }
 
     /* ================================================
@@ -287,16 +307,6 @@ st.markdown(
         box-shadow: 2px 2px 0px #000080 !important;
     }
 
-    /* Expander panels */
-    .streamlit-expanderHeader {
-        border-radius: 0px !important;
-        background: #0a0a0a !important;
-        border: 2px solid #0000ff !important;
-        font-family: 'Courier New', monospace !important;
-        font-size: 0.82rem !important;
-        color: #4a90d9 !important;
-    }
-
     /* Status components */
     .stStatus {
         border-radius: 0px !important;
@@ -331,28 +341,6 @@ st.markdown(
         border-radius: 0px;
     }
 
-    /* Chip labels */
-    .chip {
-        display: inline-block;
-        padding: 0.25rem 0.8rem;
-        border-radius: 0px;
-        font-family: 'Courier New', monospace;
-        font-size: 0.68rem;
-        letter-spacing: 0.06em;
-        margin-bottom: 0.6rem;
-        font-weight: 700;
-    }
-    .chip.ocr {
-        background: #0a0a0a;
-        border: 2px solid #00ffff;
-        color: #00ffff;
-    }
-    .chip.art {
-        background: #0a0a0a;
-        border: 2px solid #ffb8ff;
-        color: #ffb8ff;
-    }
-
     /* Streamlit native notification bars */
     .stAlert {
         border-radius: 0px !important;
@@ -369,8 +357,11 @@ st.markdown(
         h1 {
             font-size: 1.4rem !important;
         }
-        [data-testid="stFileUploadDropzone"] {
+        [data-testid="stFileUploader"] {
             padding: 1.5rem 1rem !important;
+        }
+        [data-testid="stFileUploader"]::before {
+            font-size: 1rem !important;
         }
         .marquee-outer {
             height: 120px;
@@ -380,9 +371,6 @@ st.markdown(
         .marquee-track img {
             height: 110px;
             display: inline-block;
-        }
-        [data-testid="stFileUploadDropzone"] button::after {
-            font-size: 0.82rem !important;
         }
     }
 </style>
@@ -434,11 +422,11 @@ st.markdown(
 # 📤 Upload Zone — clean, native, tactile
 # ============================================================
 upload_file = st.file_uploader(
-    "Select Book Page (Takes photo via system rear-camera or choose from album)",
+    "Select Book Page",
     type=["jpg", "jpeg", "png", "heic", "webp"],
     key=f"upload_{st.session_state.upload_key}",
-    help="Supports JPG / PNG / HEIC / WebP formats. Mobile will invoke the native camera.",
-    label_visibility="visible",
+    help="Supports JPG / PNG / HEIC / WebP formats.",
+    label_visibility="collapsed",
 )
 
 # ============================================================

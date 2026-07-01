@@ -1,7 +1,8 @@
 """
 ============================================================
-VisionReader AI · 随身视界阅读器  v4.0 极简重构
+VisionReader AI · 随身视界阅读器  v5.0 纯净重构
 高清上传 → 纯中文 OCR → 直连 Pollinations 生图
+风格：高级极简黑色直角像素风（Premium Pixel Art）
 ============================================================
 """
 
@@ -13,7 +14,6 @@ from PIL import Image
 import json
 import io
 import hashlib
-import random
 
 # ============================================================
 # 🔐 核心配置
@@ -25,9 +25,9 @@ else:
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
-# Pollinations 固定画质后缀（确定性生图，不经过 AI 脑补）
+# Pollinations 固定画质后缀（确定性生图，固定随机种子 42520）
 STYLE_SUFFIX = (
-    ", A comprehensive widescreen ensemble poster, an aventuring party, grouping all"
+    ", A comprehensive widescreen ensemble poster, an adventuring party, grouping all"
     " standard characters described into a unified fantasy cinematic scenery,"
     " 8-bit pixel art style, high detailed masterwork"
 )
@@ -36,8 +36,8 @@ STYLE_SUFFIX = (
 # 📱 Streamlit 页面配置
 # ============================================================
 st.set_page_config(
-    page_title="🕹️ VisionReader AI · 像素视界",
-    page_icon="👾",
+    page_title="VisionReader AI · 像素阅读器",
+    page_icon="📖",
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
@@ -77,16 +77,17 @@ if "img_height" not in st.session_state:
     st.session_state.img_height = 0
 
 # ============================================================
-# 🎨 极简现代暗色主题 CSS — 无动画、无炫技、纯净舒展
+# 🎨 高级极简黑色像素风 CSS — 无扫描线、无街机词汇、纯净展示
 # ============================================================
 st.markdown(
     """
 <style>
     /* ================================================
-       8-BIT PAC-MAN ARCADE THEME · 吃豆人复古像素风
+       Premium Pixel Art · 高级像素阅读器主题
+       纯黑直角 · 像素蓝边框 · 无扫描线 · 高清展示
        ================================================ */
 
-    /* 全局 — 吃豆人经典纯黑底 */
+    /* 全局纯黑底 */
     .stApp {
         background: #000000;
     }
@@ -96,43 +97,22 @@ st.markdown(
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; }
 
-    /* CRT 扫描线叠加（复古街机屏） */
-    .stApp::before {
-        content: "";
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: repeating-linear-gradient(
-            0deg,
-            rgba(0,0,0,0.12) 0px,
-            rgba(0,0,0,0.12) 2px,
-            transparent 2px,
-            transparent 4px
-        );
-        pointer-events: none;
-        z-index: 9999;
-    }
-
-    /* 主容器 */
+    /* 主容器 — 居中有留白 */
     .main .block-container {
         max-width: 900px !important;
         padding: 2rem 1.5rem 3rem !important;
     }
 
-    /* 品牌标题 — 吃豆人亮黄 */
+    /* 品牌标题 — 像素白，低调有力 */
     h1 {
         font-family: 'Courier New', monospace !important;
         font-size: 2rem !important;
         font-weight: 700 !important;
-        color: #ffff00 !important;
+        color: #ffffff !important;
         text-align: center;
         letter-spacing: 0.06em;
         margin-bottom: 0.3rem !important;
         padding-top: 1rem !important;
-        text-shadow:
-            3px 3px 0px #000000,
-            0px 0px 20px rgba(255,255,0,0.4);
-        image-rendering: pixelated;
     }
 
     /* 全局正文 — 等宽像素字体 */
@@ -140,95 +120,60 @@ st.markdown(
         font-family: 'Courier New', monospace !important;
     }
 
-    /* 副标题 — 幽灵青色 */
+    /* 副标题 / 引导语 — 像素蓝，精炼一行 */
     .subtitle {
         text-align: center;
-        color: #00ffff;
-        font-size: 0.85rem;
-        margin-bottom: 2.2rem;
-        letter-spacing: 0.08em;
-        text-shadow: 0px 0px 10px rgba(0,255,255,0.5);
-    }
-
-    /* 上传提示 */
-    .upload-hint {
-        text-align: center;
-        color: #ffff00;
-        font-size: 0.92rem;
-        font-weight: 600;
-        margin-bottom: 0.8rem;
-        line-height: 1.8;
+        color: #4a90d9;
+        font-size: 0.88rem;
+        margin-bottom: 2rem;
+        letter-spacing: 0.04em;
     }
 
     /* ================================================
-       上传区 — 街机 "INSERT COIN" 像素大色块
+       上传区 — 干净直角黑底像素框，温和包裹不魔改内部
        ================================================ */
     [data-testid="stFileUploadDropzone"] {
         border-radius: 0px !important;
-        border: 4px solid #0000ff !important;
-        padding: 2.8rem 1.5rem !important;
-        background: #000000 !important;
-        color: #ffff00 !important;
-        font-family: 'Courier New', monospace !important;
-        font-weight: 700 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        box-shadow:
-            inset 0 0 20px rgba(0,0,255,0.2),
-            0 0 15px rgba(0,0,255,0.4),
-            8px 8px 0px #000080 !important;
-        image-rendering: pixelated;
-        transition: none !important;
-    }
-    [data-testid="stFileUploadDropzone"]:hover {
-        border-color: #ffff00 !important;
-        box-shadow:
-            inset 0 0 30px rgba(0,0,255,0.3),
-            0 0 25px rgba(255,255,0,0.5),
-            8px 8px 0px #808000 !important;
+        border: 3px solid #0000ff !important;
+        background: #0a0a0a !important;
+        padding: 2rem !important;
     }
 
     /* ================================================
-       结果卡片 — 霓虹蓝迷宫围墙
+       结果卡片 — 像素蓝直角边框
        ================================================ */
     .result-card {
-        background: #000000;
-        border: 3px solid #0000ff;
+        background: #0a0a0a;
+        border: 2px solid #0000ff;
         border-radius: 0px;
         padding: 1.2rem;
         margin: 0.6rem 0;
-        box-shadow: 0 0 10px rgba(0,0,255,0.3), 4px 4px 0px #000080;
-        font-family: 'Courier New', monospace;
+        box-shadow: 4px 4px 0px #000080;
     }
 
-    /* OCR 文本框 — 幽灵青色发光 */
+    /* OCR 文本框 — 青字黑底 */
     .ocr-area textarea {
-        background: #000000 !important;
-        border: 3px solid #0000ff !important;
+        background: #0a0a0a !important;
+        border: 2px solid #0000ff !important;
         border-radius: 0px !important;
         color: #00ffff !important;
         font-family: 'Courier New', monospace !important;
         font-size: 0.9rem !important;
         line-height: 1.8 !important;
         padding: 0.8rem !important;
-        box-shadow:
-            inset 0 0 15px rgba(0,0,255,0.1),
-            0 0 10px rgba(0,0,255,0.2);
     }
 
-    /* 生成图片展示 — 像素画框 */
+    /* 生成图片展示 — 像素蓝画框，无伪影 */
     .stImage img {
         border-radius: 0px !important;
         border: 3px solid #0000ff !important;
         box-shadow:
-            0 0 20px rgba(0,0,255,0.4),
-            0 12px 40px rgba(0,0,0,0.5),
+            0 4px 24px rgba(0, 0, 255, 0.15),
             4px 4px 0px #000080 !important;
-        image-rendering: pixelated;
     }
 
     /* ================================================
-       按钮 — 街机像素大色块 "START GAME"
+       按钮 — 黑底蓝框像素大色块
        ================================================ */
     .stButton > button {
         border-radius: 0px !important;
@@ -236,20 +181,18 @@ st.markdown(
         font-weight: 700 !important;
         letter-spacing: 0.06em !important;
         border: 3px solid #0000ff !important;
-        background: #000000 !important;
-        color: #ffff00 !important;
+        background: #0a0a0a !important;
+        color: #ffffff !important;
         box-shadow: 4px 4px 0px #000080 !important;
-        text-transform: uppercase;
-        transition: none !important;
-        image-rendering: pixelated;
         padding: 0.5rem 1.5rem !important;
+        transition: none !important;
     }
     .stButton > button:hover {
-        border-color: #ffff00 !important;
-        color: #ffff00 !important;
+        border-color: #4a90d9 !important;
+        color: #ffffff !important;
         box-shadow:
-            4px 4px 0px #808000,
-            0 0 15px rgba(255,255,0,0.3) !important;
+            4px 4px 0px #1a3a5c,
+            0 0 12px rgba(74, 144, 217, 0.2) !important;
     }
     .stButton > button:active {
         transform: translate(2px, 2px);
@@ -259,49 +202,48 @@ st.markdown(
     /* 展开面板 */
     .streamlit-expanderHeader {
         border-radius: 0px !important;
-        background: #000000 !important;
+        background: #0a0a0a !important;
         border: 2px solid #0000ff !important;
         font-family: 'Courier New', monospace !important;
         font-size: 0.82rem !important;
-        color: #00ffff !important;
+        color: #4a90d9 !important;
     }
 
     /* 状态组件 */
     .stStatus {
         border-radius: 0px !important;
-        border: 3px solid #0000ff !important;
-        background: #000000 !important;
+        border: 2px solid #0000ff !important;
+        background: #0a0a0a !important;
         font-family: 'Courier New', monospace !important;
     }
 
-    /* 分割线 — 像素虚线迷宫墙 */
+    /* 分割线 — 像素蓝细线 */
     hr {
         border: none !important;
-        border-top: 2px dashed #0000ff !important;
+        border-top: 1px solid #0000ff !important;
         margin: 1.6rem 0 !important;
+        opacity: 0.5;
     }
 
     /* 底部 */
     .footer {
         text-align: center;
-        color: #0000ff;
+        color: #333366;
         font-family: 'Courier New', monospace;
-        font-size: 0.64rem;
+        font-size: 0.62rem;
         padding: 2.5rem 0 0.5rem;
         letter-spacing: 0.05em;
-        text-shadow: 0px 0px 6px rgba(0,0,255,0.4);
     }
 
-    /* 滚动条 — 霓虹蓝像素条 */
+    /* 滚动条 — 像素蓝窄条 */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #000000; }
     ::-webkit-scrollbar-thumb {
         background: #0000ff;
         border-radius: 0px;
-        box-shadow: 0 0 6px rgba(0,0,255,0.5);
     }
 
-    /* 胶囊标签 — 像素幽灵色 */
+    /* 胶囊标签 — 像素风 */
     .chip {
         display: inline-block;
         padding: 0.25rem 0.8rem;
@@ -313,23 +255,21 @@ st.markdown(
         font-weight: 700;
     }
     .chip.ocr {
-        background: #000000;
+        background: #0a0a0a;
         border: 2px solid #00ffff;
         color: #00ffff;
-        text-shadow: 0 0 6px rgba(0,255,255,0.5);
     }
     .chip.art {
-        background: #000000;
+        background: #0a0a0a;
         border: 2px solid #ffb8ff;
         color: #ffb8ff;
-        text-shadow: 0 0 6px rgba(255,184,255,0.5);
     }
 
     /* Streamlit 原生通知条 */
     .stAlert {
         border-radius: 0px !important;
         border: 2px solid #0000ff !important;
-        background: #000000 !important;
+        background: #0a0a0a !important;
         font-family: 'Courier New', monospace !important;
     }
 
@@ -342,7 +282,7 @@ st.markdown(
             font-size: 1.4rem !important;
         }
         [data-testid="stFileUploadDropzone"] {
-            padding: 2rem 1rem !important;
+            padding: 1.5rem 1rem !important;
         }
     }
 </style>
@@ -351,31 +291,24 @@ st.markdown(
 )
 
 # ============================================================
-# 🏠 品牌头部
+# 🏠 品牌头部 — 精炼、高级
 # ============================================================
 st.markdown(
     """
-<h1>👾 VisionReader AI</h1>
-<p class="subtitle">🕹️ 拍下书页 · 看见故事 · 像素视界</p>
+<h1>📖 VisionReader AI</h1>
+<p class="subtitle">拍下书页或上传照片，看文字化为像素画境。</p>
 """,
     unsafe_allow_html=True,
 )
 
 # ============================================================
-# 📤 唯一上传区 — 巨型、直观、原生相机/相册
+# 📤 上传区 — 干净、原生、好点
 # ============================================================
-st.markdown(
-    '<p class="upload-hint">'
-    '🕹️ 点击下方 <b>【INSERT COIN】</b> 按钮 — 选择 '
-    '<b>【拍照】</b>（自动唤起手机原生后置超清相机）或 <b>【从相册选择】</b></p>',
-    unsafe_allow_html=True,
-)
-
 upload_file = st.file_uploader(
-    "🕹️ INSERT COIN — 点击拍照或选择书页",
+    "选择书页照片（拍照或从相册选取）",
     type=["jpg", "jpeg", "png", "heic", "webp"],
     key=f"upload_{st.session_state.upload_key}",
-    help="支持 JPG / PNG / HEIC / WebP 格式。手机端将唤起原生相机，画质远超网页摄像头。",
+    help="支持 JPG / PNG / HEIC / WebP 格式。手机端将唤起原生相机。",
     label_visibility="visible",
 )
 
@@ -403,10 +336,10 @@ if upload_file is not None:
             st.caption(f"分辨率：{img.width} × {img.height} px")
 
         # 主处理管线
-        with st.status("🧠 视觉大脑正在解析书页...", expanded=True) as status:
+        with st.status("🔍 视觉大脑正在解析书页...", expanded=True) as status:
 
             # ================================================
-            # 阶段 1：Gemini 纯 OCR — 只识别中文，不生成 prompt
+            # 阶段 1：Gemini 纯 OCR — 只识别中文
             # ================================================
             st.write("🔍 **阶段 1/2：精准识别书页中文文字...**")
 
@@ -453,7 +386,7 @@ if upload_file is not None:
             st.session_state.ocr_text = chinese_text
 
             # ================================================
-            # 阶段 2：中文直连 Pollinations — 零中间商
+            # 阶段 2：中文直连 Pollinations — 固定种子 42520
             # ================================================
             if chinese_text:
                 status.update(
@@ -461,7 +394,6 @@ if upload_file is not None:
                     state="running",
                 )
 
-                # 中文原文 + 固定画质后缀，直接 URL 编码喂给 Pollinations
                 final_prompt = chinese_text + STYLE_SUFFIX
                 encoded_prompt = urllib.parse.quote(final_prompt, safe="")
                 seed_num = 42520
@@ -496,7 +428,7 @@ if upload_file is not None:
             st.session_state.show_results = False
 
         st.button(
-            "🕹️ 拍摄新书页",
+            "📷 拍摄新书页",
             on_click=reset_all,
             use_container_width=True,
             type="secondary",
@@ -516,7 +448,7 @@ if upload_file is not None:
         st.markdown("### 📝 识别的书页文字")
         if st.session_state.ocr_text:
             st.markdown(
-                '<div class="result-card"><span class="chip ocr">✦ OCR 识别结果</span>',
+                '<div class="result-card"><span class="chip ocr">🔍 OCR 识别结果</span>',
                 unsafe_allow_html=True,
             )
             st.text_area(
@@ -528,14 +460,14 @@ if upload_file is not None:
             )
             st.markdown("</div>", unsafe_allow_html=True)
         else:
-            st.info("🤔 未在图像中检测到中文字符。请确保书页文字清晰，重新拍摄。")
+            st.info("未在图像中检测到中文字符。请确保书页文字清晰，重新拍摄。")
 
-        # ② AI 画作 — 全宽震撼展示
+        # ② AI 画作 — 全宽展示
         if st.session_state.final_image_url:
             st.markdown("### 🖼️ AI 视觉渲染")
             st.markdown(
                 '<div style="text-align:center;margin:0.4rem 0 0.6rem;">'
-                '<span class="chip art">✦ 画面由你的文字直接驱动 ✦</span></div>',
+                '<span class="chip art">🎨 画面由你的文字直接驱动</span></div>',
                 unsafe_allow_html=True,
             )
             st.image(
@@ -558,26 +490,21 @@ if upload_file is not None:
             )
 
 # ============================================================
-# 🏠 空状态引导
+# 🏠 空状态引导 — 简洁像素框
 # ============================================================
 else:
     st.markdown(
         """
-    <div style="text-align:center;padding:3rem 1.5rem;
-                background:#000000;border-radius:0px;
-                border:3px solid #0000ff;margin-top:0.5rem;
-                box-shadow:0 0 15px rgba(0,0,255,0.3),4px 4px 0px #000080;">
-        <div style="font-family:'Courier New',monospace;font-size:3rem;margin-bottom:0.8rem;opacity:0.9;
-                    text-shadow:0 0 15px rgba(255,255,0,0.5);">👾</div>
-        <div style="font-family:'Courier New',monospace;color:#ffff00;font-size:0.95rem;font-weight:700;margin-bottom:0.6rem;
-                    text-shadow:0 0 10px rgba(255,255,0,0.3);">
-            ▸ READY TO PLAY ◂
-        </div>
-        <div style="font-family:'Courier New',monospace;color:#00ffff;font-size:0.78rem;line-height:2.2;
-                    text-shadow:0 0 5px rgba(0,255,255,0.3);">
-            点击上方 🕹️ <b>INSERT COIN</b> 拍照或选择书页照片<br>
+    <div style="text-align:center;padding:2.5rem 1.5rem;
+                background:#0a0a0a;border-radius:0px;
+                border:2px solid #0000ff;margin-top:0.5rem;
+                box-shadow:4px 4px 0px #000080;">
+        <div style="font-family:'Courier New',monospace;font-size:2.5rem;margin-bottom:0.8rem;
+                    line-height:1;">📖</div>
+        <div style="font-family:'Courier New',monospace;color:#4a90d9;font-size:0.82rem;line-height:2.0;">
+            在上方选择书页照片<br>
             AI 将自动识别书中文字<br>
-            并直接根据原文为你生成像素视觉画作
+            并根据原文为你生成像素视觉画作
         </div>
     </div>
     """,
@@ -590,8 +517,8 @@ else:
 st.markdown(
     """
 <div class="footer">
-    🕹️ VisionReader AI v5.0 · 像素视界阅读器<br>
-    Powered by Gemini Vision & Pollinations AI
+    VisionReader AI · 像素阅读器<br>
+    Powered by Gemini Vision &amp; Pollinations AI
 </div>
 """,
     unsafe_allow_html=True,

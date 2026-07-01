@@ -134,6 +134,7 @@ st.markdown(
     .marquee-outer {
         width: 100%;
         overflow: hidden;
+        overflow-x: hidden;
         position: relative;
         height: 140px;
         margin-bottom: 2rem;
@@ -162,6 +163,8 @@ st.markdown(
         position: absolute;
         animation: marquee-scroll 30s linear infinite;
         width: max-content;
+        white-space: nowrap;
+        will-change: transform;
     }
     .marquee-track img {
         height: 130px;
@@ -171,6 +174,7 @@ st.markdown(
         clip-path: inset(0 0 0 0);
         border: 2px solid #0000ff;
         flex-shrink: 0;
+        display: inline-block;
     }
     @keyframes marquee-scroll {
         0%   { transform: translateX(0); }
@@ -366,9 +370,11 @@ st.markdown(
         .marquee-outer {
             height: 120px;
             margin-bottom: 1.4rem;
+            overflow-x: hidden;
         }
         .marquee-track img {
             height: 110px;
+            display: inline-block;
         }
         div[data-testid="stFileUploader"] section button::after {
             font-size: 0.82rem !important;
@@ -395,11 +401,11 @@ st.markdown(
 #    Pollinations AI pre-generated cinematic concept art
 # ============================================================
 MARQUEE_IMAGES = [
-    "https://image.pollinations.ai/prompt/epic+fantasy+dragon+soaring+over+misty+mountains+cinematic+concept+art+dark+atmospheric?width=400&height=150&nologo=true&seed=7701",
-    "https://image.pollinations.ai/prompt/cyberpunk+megacity+neon+rain+night+blade+runner+cinematic+concept+art?width=400&height=150&nologo=true&seed=7702",
-    "https://image.pollinations.ai/prompt/massive+interstellar+starship+nebula+deep+space+cinematic+sci+fi+concept+art?width=400&height=150&nologo=true&seed=7703",
-    "https://image.pollinations.ai/prompt/enchanted+floating+crystal+castle+ethereal+clouds+fantasy+cinematic+concept+art?width=400&height=150&nologo=true&seed=7704",
-    "https://image.pollinations.ai/prompt/ancient+lovecraftian+temple+ruins+cosmic+horror+dark+cinematic+concept+art?width=400&height=150&nologo=true&seed=7705",
+    "https://image.pollinations.ai/prompt/beautiful-fantasy-castle-on-floating-island-at-sunset?width=300&height=200&nologo=true&seed=12345",
+    "https://image.pollinations.ai/prompt/epic-fantasy-ranger-knight-standing-in-snowy-forest?width=300&height=200&nologo=true&seed=23456",
+    "https://image.pollinations.ai/prompt/A%20magnificent%20mystical%20dragon%20perched%20on%20a%20glowing%20crystal%20mountain,%20epic%20lighting?width=300&height=200&nologo=true&seed=777",
+    "https://image.pollinations.ai/prompt/cyberpunk-city-street-with-bright-neon-lights-at-night?width=300&height=200&nologo=true&seed=34567",
+    "https://image.pollinations.ai/prompt/glowing-ancient-magical-crystal-floating-in-dark-sanctuary?width=300&height=200&nologo=true&seed=45678",
 ]
 
 marquee_img_tags = "\n".join(

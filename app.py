@@ -1,8 +1,8 @@
 """
 ============================================================
-VisionReader AI · Premium Pixel Art Book Reader  v6.0  Final
+VisionReader AI · Art Scenery Book Reader  v7.0  Final
 HD Upload → Pure OCR → Direct Pollinations Image Generation
-Style: Minimal Black Rectilinear Pixel Art (Production Ready)
+Style: Dark Cinematic · Conceptual Masterpiece Render
 ============================================================
 """
 
@@ -25,18 +25,17 @@ else:
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
-# Pollinations fixed quality suffix (deterministic generation, fixed seed 42520)
+# Pollinations fixed quality suffix — cinematic conceptual masterpiece render
 STYLE_SUFFIX = (
-    ", A comprehensive widescreen ensemble poster, an adventuring party, grouping all"
-    " standard characters described into a unified fantasy cinematic scenery,"
-    " 8-bit pixel art style, high detailed masterwork"
+    ", A spectacular conceptual masterpiece, breathtaking fantasy cinematic scenery,"
+    " hyper-detailed, epic lighting, dark atmospheric aesthetic, masterpiece, 8k resolution"
 )
 
 # ============================================================
 # 📱 Streamlit Page Configuration
 # ============================================================
 st.set_page_config(
-    page_title="VisionReader AI · Pixel Reader",
+    page_title="VisionReader AI · Art Reader",
     page_icon="📖",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -77,14 +76,14 @@ if "img_height" not in st.session_state:
     st.session_state.img_height = 0
 
 # ============================================================
-# 🎨 Premium Minimal Black Pixel-Art CSS — Clean & Production Ready
+# 🎨 Ultimate Dark Cinematic CSS — Art Scenery Theme
 # ============================================================
 st.markdown(
     """
 <style>
     /* ================================================
-       Premium Pixel Art · VisionReader Theme
-       Pure black · Pixel-blue borders · No scanlines
+       VisionReader AI · Art Scenery Theme
+       Pure black · Electric-blue accents · Cinematic
        ================================================ */
 
     /* Global pure black background */
@@ -103,7 +102,7 @@ st.markdown(
         padding: 2rem 1.5rem 3rem !important;
     }
 
-    /* Brand title — pixel white, understated power */
+    /* Brand title — clean monospace white */
     h1 {
         font-family: 'Courier New', monospace !important;
         font-size: 2rem !important;
@@ -115,23 +114,71 @@ st.markdown(
         padding-top: 1rem !important;
     }
 
-    /* Global body — monospace pixel font */
+    /* Global body — monospace */
     body, p, div, span, label, button, input, textarea, caption, .stMarkdown {
         font-family: 'Courier New', monospace !important;
     }
 
-    /* Subtitle / tagline — pixel blue, one clean line */
+    /* Subtitle / tagline — electric blue, one clean line */
     .subtitle {
         text-align: center;
         color: #4a90d9;
         font-size: 0.88rem;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
         letter-spacing: 0.04em;
     }
 
     /* ================================================
-       Upload Zone — clean rectilinear pixel frame,
-       flat grey blocks, no text overlap artifacts
+       🎞️ Visual Showcase Marquee — Infinite Scroll
+       ================================================ */
+    .marquee-outer {
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        height: 140px;
+        margin-bottom: 2rem;
+        background: #000000;
+    }
+    .marquee-outer::before,
+    .marquee-outer::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 40px;
+        z-index: 2;
+        pointer-events: none;
+    }
+    .marquee-outer::before {
+        left: 0;
+        background: linear-gradient(to right, #000000 0%, transparent 100%);
+    }
+    .marquee-outer::after {
+        right: 0;
+        background: linear-gradient(to left, #000000 0%, transparent 100%);
+    }
+    .marquee-track {
+        display: flex;
+        position: absolute;
+        animation: marquee-scroll 30s linear infinite;
+        width: max-content;
+    }
+    .marquee-track img {
+        height: 130px;
+        width: auto;
+        margin: 5px 6px;
+        object-fit: cover;
+        clip-path: inset(0 0 0 0);
+        border: 2px solid #0000ff;
+        flex-shrink: 0;
+    }
+    @keyframes marquee-scroll {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    /* ================================================
+       Upload Zone — clean rectilinear frame
        ================================================ */
     [data-testid="stFileUploadDropzone"] {
         border-radius: 0px !important;
@@ -140,18 +187,39 @@ st.markdown(
         padding: 2.5rem 1.5rem !important;
     }
 
-    /* Aggressively fix the "uploadupload" text overlap bug —
-       hide Streamlit's built-in button pseudo-text and label
-       that conflict with our pixel custom CSS */
-    div[data-testid="stFileUploader"] section button::before {
-        content: "" !important;
+    /* ──  Brutal Fix: hide ALL native uploader internal text  ── */
+    div[data-testid="stFileUploader"] section button div {
+        display: none !important;
     }
+    div[data-testid="stFileUploader"] section button::after {
+        content: "Upload or Snap Page" !important;
+        font-family: 'Courier New', monospace !important;
+        font-size: 0.95rem !important;
+        color: #ffffff !important;
+        letter-spacing: 0.06em !important;
+    }
+    div[data-testid="stFileUploader"] section button {
+        background-color: #0d0d1a !important;
+        border: 2px solid #0000ff !important;
+        border-radius: 0px !important;
+        padding: 1.5rem !important;
+        width: 100% !important;
+    }
+    /* Hide the outer label that duplicates text */
     div[data-testid="stFileUploader"] label {
+        display: none !important;
+    }
+    /* Also hide the small "Drag and drop file here" text */
+    div[data-testid="stFileUploadDropzone"] div[data-testid="stMarkdownContainer"] p {
+        display: none !important;
+    }
+    /* Keep only the file-size-limit hint if present, hide it too for cleanliness */
+    div[data-testid="stFileUploadDropzone"] small {
         display: none !important;
     }
 
     /* ================================================
-       Result Cards — pixel-blue rectilinear border
+       Result Cards — electric-blue rectilinear border
        ================================================ */
     .result-card {
         background: #0a0a0a;
@@ -174,7 +242,7 @@ st.markdown(
         padding: 0.8rem !important;
     }
 
-    /* Generated image display — pixel-blue frame, no artifacts */
+    /* Generated image display — electric-blue frame */
     .stImage img {
         border-radius: 0px !important;
         border: 3px solid #0000ff !important;
@@ -184,7 +252,7 @@ st.markdown(
     }
 
     /* ================================================
-       Buttons — black fill, blue pixel border
+       Buttons — black fill, blue border
        ================================================ */
     .stButton > button {
         border-radius: 0px !important;
@@ -228,7 +296,7 @@ st.markdown(
         font-family: 'Courier New', monospace !important;
     }
 
-    /* Dividers — pixel-blue thin line */
+    /* Dividers — electric-blue thin line */
     hr {
         border: none !important;
         border-top: 1px solid #0000ff !important;
@@ -246,7 +314,7 @@ st.markdown(
         letter-spacing: 0.05em;
     }
 
-    /* Scrollbar — pixel-blue narrow */
+    /* Scrollbar — electric-blue narrow */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #000000; }
     ::-webkit-scrollbar-thumb {
@@ -254,7 +322,7 @@ st.markdown(
         border-radius: 0px;
     }
 
-    /* Chip labels — pixel style */
+    /* Chip labels */
     .chip {
         display: inline-block;
         padding: 0.25rem 0.8rem;
@@ -295,6 +363,16 @@ st.markdown(
         [data-testid="stFileUploadDropzone"] {
             padding: 1.5rem 1rem !important;
         }
+        .marquee-outer {
+            height: 120px;
+            margin-bottom: 1.4rem;
+        }
+        .marquee-track img {
+            height: 110px;
+        }
+        div[data-testid="stFileUploader"] section button::after {
+            font-size: 0.82rem !important;
+        }
     }
 </style>
 """,
@@ -302,12 +380,41 @@ st.markdown(
 )
 
 # ============================================================
-# 🏠 Brand Header — refined, premium
+# 🏠 Brand Header — refined art scenery
 # ============================================================
 st.markdown(
     """
 <h1>📖 VisionReader AI</h1>
-<p class="subtitle">Snap a book page or upload an image to transform novel text into pixel art scenery.</p>
+<p class="subtitle">Snap a book page or upload an image to transform novel text into art scenery.</p>
+""",
+    unsafe_allow_html=True,
+)
+
+# ============================================================
+# 🎞️ Visual Showcase — Infinite Horizontal Marquee
+#    Pollinations AI pre-generated cinematic concept art
+# ============================================================
+MARQUEE_IMAGES = [
+    "https://image.pollinations.ai/prompt/epic+fantasy+dragon+soaring+over+misty+mountains+cinematic+concept+art+dark+atmospheric?width=400&height=150&nologo=true&seed=7701",
+    "https://image.pollinations.ai/prompt/cyberpunk+megacity+neon+rain+night+blade+runner+cinematic+concept+art?width=400&height=150&nologo=true&seed=7702",
+    "https://image.pollinations.ai/prompt/massive+interstellar+starship+nebula+deep+space+cinematic+sci+fi+concept+art?width=400&height=150&nologo=true&seed=7703",
+    "https://image.pollinations.ai/prompt/enchanted+floating+crystal+castle+ethereal+clouds+fantasy+cinematic+concept+art?width=400&height=150&nologo=true&seed=7704",
+    "https://image.pollinations.ai/prompt/ancient+lovecraftian+temple+ruins+cosmic+horror+dark+cinematic+concept+art?width=400&height=150&nologo=true&seed=7705",
+]
+
+marquee_img_tags = "\n".join(
+    f'<img src="{url}" alt="AI Concept Art" loading="lazy" />'
+    for url in MARQUEE_IMAGES
+)
+
+st.markdown(
+    f"""
+<div class="marquee-outer">
+    <div class="marquee-track">
+        {marquee_img_tags}
+        {marquee_img_tags}
+    </div>
+</div>
 """,
     unsafe_allow_html=True,
 )
@@ -401,7 +508,7 @@ if upload_file is not None:
             # ================================================
             if chinese_text:
                 status.update(
-                    label="🎨 Stage 2/2: Rendering text into visual pixel art...",
+                    label="🎨 Stage 2/2: Rendering text into cinematic art scenery...",
                     state="running",
                 )
 
@@ -478,7 +585,7 @@ if upload_file is not None:
             st.markdown("### 🎨 AI Visual Rendering")
             st.markdown(
                 '<div style="text-align:center;margin:0.4rem 0 0.6rem;">'
-                '<span class="chip art">Scene directly driven by your novel text.</span></div>',
+                '<span class="chip art">Cinematic scenery driven by your novel text.</span></div>',
                 unsafe_allow_html=True,
             )
             st.image(
@@ -501,7 +608,7 @@ if upload_file is not None:
             )
 
 # ============================================================
-# 🏠 Empty State Guide — clean pixel frame
+# 🏠 Empty State Guide — clean frame, single line only
 # ============================================================
 else:
     st.markdown(
@@ -512,10 +619,8 @@ else:
                 box-shadow:4px 4px 0px #000080;">
         <div style="font-family:'Courier New',monospace;font-size:2.5rem;margin-bottom:0.8rem;
                     line-height:1;">📖</div>
-        <div style="font-family:'Courier New',monospace;color:#4a90d9;font-size:0.82rem;line-height:2.0;">
-            Upload or snap a page above.<br>
-            Gemini will extract the text and render<br>
-            your premium pixel art masterpiece synchronously.
+        <div style="font-family:'Courier New',monospace;color:#4a90d9;font-size:0.82rem;">
+            Upload or snap a page above.
         </div>
     </div>
     """,
@@ -528,7 +633,7 @@ else:
 st.markdown(
     """
 <div class="footer">
-    VisionReader AI · Pixel Book Reader<br>
+    VisionReader AI · Art Scenery Book Reader<br>
     Powered by Gemini Vision &amp; Pollinations AI
 </div>
 """,

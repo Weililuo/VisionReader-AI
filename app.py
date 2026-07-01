@@ -1,8 +1,8 @@
 """
 ============================================================
-VisionReader AI · Art Scenery Book Reader  v7.0  Final
+VisionReader AI · Art Scenery Book Reader  v9.0  Final
 HD Upload → Pure OCR → Direct Pollinations Image Generation
-Style: Dark Cinematic · Conceptual Masterpiece Render
+Style: Pure Landscape · Environmental Scenery Only
 ============================================================
 """
 
@@ -16,7 +16,7 @@ import io
 import hashlib
 
 # ============================================================
-# 🔐 Core Configuration
+# Core Configuration
 # ============================================================
 if "GEMINI_API_KEY" in st.secrets:
     GEMINI_API_KEY = str(st.secrets["GEMINI_API_KEY"]).strip()
@@ -25,18 +25,19 @@ else:
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
-# Pollinations fixed quality suffix — landscape-first epic composition
-# v8.0: Geology-centric guard — environment dominates, subjects are accents
+# Pollinations fixed quality suffix — ABSOLUTE PURE LANDSCAPE ONLY
+# No humans, no humanoids, no animals, no monsters, no characters
+# All compute dedicated to environmental scenery and atmosphere
 STYLE_SUFFIX = (
-    ", An immense and spectacular conceptual masterpiece, groundbreaking epic landscape driven primarily by the described geology or background, grand scale composition, text-described subjects or creatures must be secondary, subtle accents, less than 10% in frame size, NO humans unless explicitly named, hyper-detailed, epic lighting, dark atmospheric aesthetic, masterpiece, 8k resolution, cinematic, NO close-up"
+    ", An immense and spectacular conceptual masterpiece, breathtaking pure fantasy or sci-fi geologic landscape scenery, giant scale background environment, dramatic dark atmospheric aesthetic, epic cinematic lighting, masterpiece, 8k resolution, ABSOLUTELY NO humans, NO humanoids, NO animals, NO monsters, NO characters, empty pure landscape environment only"
 )
 
 # ============================================================
-# 📱 Streamlit Page Configuration
+# Streamlit Page Configuration
 # ============================================================
 st.set_page_config(
     page_title="VisionReader AI · Art Reader",
-    page_icon="📖",
+    page_icon="\U0001f4d6",
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
@@ -56,7 +57,7 @@ if not GEMINI_API_KEY:
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 # ============================================================
-# 🧠 Session State Initialization
+# Session State Initialization
 # ============================================================
 if "upload_key" not in st.session_state:
     st.session_state.upload_key = 0
@@ -76,7 +77,7 @@ if "img_height" not in st.session_state:
     st.session_state.img_height = 0
 
 # ============================================================
-# 🎨 Ultimate Dark Cinematic CSS — Art Scenery Theme
+# Ultimate Dark Cinematic CSS — Clean & Minimal
 # ============================================================
 st.markdown(
     """
@@ -129,7 +130,7 @@ st.markdown(
     }
 
     /* ================================================
-       🎞️ Visual Showcase Marquee — Infinite Scroll
+       Visual Showcase Marquee — Infinite Scroll
        ================================================ */
     .marquee-outer {
         width: 100%;
@@ -182,69 +183,38 @@ st.markdown(
     }
 
     /* ================================================
-       Upload Zone — Pixel Camera Entry
-       v8.0: Native DOM fully hidden; custom retro icons
+       Upload Zone — Clean classic, blue rectilinear frame
+       No pseudo-elements, no icons, no overlap
        ================================================ */
-
-    /* Outer container: black box, blue pixel border */
     [data-testid="stFileUploader"] {
-        position: relative !important;
-        background: #000000 !important;
+        background: #0a0a0a !important;
         border: 3px solid #0000ff !important;
         border-radius: 0px !important;
-        padding: 2.5rem 1.5rem !important;
-        text-align: center !important;
-        min-height: 130px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
+        box-shadow: 4px 4px 0px #000080 !important;
+        padding: 1.5rem !important;
     }
-
-    /* Custom pixel camera entry: 📸 + 🖼️ icons, single clean label */
-    [data-testid="stFileUploader"]::before {
-        content: "📸  🖼️\\A Scan or Upload";
-        white-space: pre !important;
+    [data-testid="stFileUploader"] label {
         font-family: 'Courier New', monospace !important;
-        font-size: 1.3rem !important;
         color: #ffffff !important;
-        letter-spacing: 0.06em !important;
-        display: block !important;
-        text-align: center !important;
-        line-height: 2 !important;
+        font-size: 0.95rem !important;
+        letter-spacing: 0.04em !important;
     }
-
-    /* Brutal Fix: hide ALL native children of stFileUploader */
-    [data-testid="stFileUploader"] > label {
-        display: none !important;
-    }
-    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] button {
-        display: none !important;
-    }
-    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] [data-testid="stMarkdownContainer"] {
-        display: none !important;
-    }
-    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] small {
-        display: none !important;
-    }
-    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] div {
-        display: none !important;
-    }
-
-    /* Make dropzone invisible but still clickable as overlay */
     [data-testid="stFileUploadDropzone"] {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        opacity: 0 !important;
-        cursor: pointer !important;
-        z-index: 10 !important;
-        border: none !important;
         background: transparent !important;
+        border: none !important;
         border-radius: 0px !important;
+    }
+    [data-testid="stFileUploadDropzone"] * {
+        font-family: 'Courier New', monospace !important;
+        color: #666666 !important;
+    }
+    [data-testid="stFileUploadDropzone"] button {
+        font-family: 'Courier New', monospace !important;
+        color: #ffffff !important;
+        background: #0a0a0a !important;
+        border: 2px solid #0000ff !important;
+        border-radius: 0px !important;
+        padding: 0.3rem 1rem !important;
     }
 
     /* ================================================
@@ -358,10 +328,7 @@ st.markdown(
             font-size: 1.4rem !important;
         }
         [data-testid="stFileUploader"] {
-            padding: 1.5rem 1rem !important;
-        }
-        [data-testid="stFileUploader"]::before {
-            font-size: 1rem !important;
+            padding: 1rem !important;
         }
         .marquee-outer {
             height: 120px;
@@ -379,26 +346,28 @@ st.markdown(
 )
 
 # ============================================================
-# 🏠 Brand Header — refined art scenery
+# Brand Header — refined art scenery
 # ============================================================
 st.markdown(
     """
-<h1>📖 VisionReader AI</h1>
+<h1>VisionReader AI</h1>
 <p class="subtitle">Snap a book page or upload an image to transform novel text into art scenery.</p>
 """,
     unsafe_allow_html=True,
 )
 
 # ============================================================
-# 🎞️ Visual Showcase — Infinite Horizontal Marquee
-#    Pollinations AI pre-generated cinematic concept art
+# Visual Showcase — Infinite Horizontal Marquee
+#    Pollinations AI pre-generated pure landscape concept art
+#    (6 images, no humans / no creatures)
 # ============================================================
 MARQUEE_IMAGES = [
-    "https://image.pollinations.ai/prompt/beautiful-fantasy-castle-on-floating-island-at-sunset?width=300&height=200&nologo=true&seed=12345",
-    "https://image.pollinations.ai/prompt/epic-fantasy-ranger-knight-standing-in-snowy-forest?width=300&height=200&nologo=true&seed=23456",
-    "https://image.pollinations.ai/prompt/A%20magnificent%20mystical%20dragon%20perched%20on%20a%20glowing%20crystal%20mountain,%20epic%20lighting?width=300&height=200&nologo=true&seed=777",
-    "https://image.pollinations.ai/prompt/cyberpunk-city-street-with-bright-neon-lights-at-night?width=300&height=200&nologo=true&seed=34567",
-    "https://image.pollinations.ai/prompt/glowing-ancient-magical-crystal-floating-in-dark-sanctuary?width=300&height=200&nologo=true&seed=45678",
+    "https://image.pollinations.ai/prompt/Epic%20fantasy%20floating%20islands%20above%20clouds%20at%20sunset,%20cinematic%20lighting?width=300&height=200&nologo=true&seed=12345",
+    "https://image.pollinations.ai/prompt/Majestic%20snow-capped%20mountain%20range%20at%20golden%20hour,%20dramatic%20storm%20clouds?width=300&height=200&nologo=true&seed=23456",
+    "https://image.pollinations.ai/prompt/Ancient%20bioluminescent%20alien%20forest%20with%20glowing%20plants,%20dark%20atmosphere?width=300&height=200&nologo=true&seed=34567",
+    "https://image.pollinations.ai/prompt/Cyberpunk%20city%20skyline%20with%20neon%20lights%20reflecting%20on%20water%20at%20night?width=300&height=200&nologo=true&seed=45678",
+    "https://image.pollinations.ai/prompt/Vast%20desert%20canyon%20with%20dramatic%20red%20rock%20formations%20at%20sunset?width=300&height=200&nologo=true&seed=56789",
+    "https://image.pollinations.ai/prompt/Mystical%20crystal%20cave%20with%20glowing%20blue%20minerals,%20underground%20sanctuary?width=300&height=200&nologo=true&seed=67890",
 ]
 
 marquee_img_tags = "\n".join(
@@ -419,25 +388,25 @@ st.markdown(
 )
 
 # ============================================================
-# 📤 Upload Zone — clean, native, tactile
+# Upload Zone — clean classic, no icons, no overlap
 # ============================================================
 upload_file = st.file_uploader(
-    "Select Book Page",
+    "Upload or snap a page above.",
     type=["jpg", "jpeg", "png", "heic", "webp"],
     key=f"upload_{st.session_state.upload_key}",
     help="Supports JPG / PNG / HEIC / WebP formats.",
-    label_visibility="collapsed",
+    label_visibility="visible",
 )
 
 # ============================================================
-# 🧠 Image Processing Pipeline — Pure OCR → Direct Pollinations
+# Image Processing Pipeline — Pure OCR → Direct Pollinations
 # ============================================================
 if upload_file is not None:
     # Read image bytes
     img_bytes = upload_file.read()
     new_hash = hashlib.md5(img_bytes).hexdigest()
 
-    # Only process on new image
+    # Only process on new image (MD5 cache intercept)
     if new_hash != st.session_state.img_hash:
         st.session_state.img_hash = new_hash
         st.session_state.img_bytes = img_bytes
@@ -448,12 +417,12 @@ if upload_file is not None:
         st.session_state.img_height = img.height
 
         # Main processing pipeline
-        with st.status("📖 Reading page…", expanded=True) as status:
+        with st.status("Reading page...", expanded=True) as status:
 
             # ================================================
             # Phase 1: Pure Gemini OCR Extraction
             # ================================================
-            st.write("🔍 Extracting Text...")
+            st.write("Extracting Text...")
 
             ocr_prompt = """You are an expert OCR specialist. Your sole task is to accurately recognize and extract all visible Chinese text from this image.
 
@@ -499,10 +468,11 @@ Return a JSON object containing a single key "chinese_text" holding the extracte
 
             # ================================================
             # Stage 2: Direct Pollinations — fixed seed 42520
+            #   150-char truncation for URL safety
             # ================================================
             if chinese_text:
                 status.update(
-                    label="🎨 Generating Imagery...",
+                    label="Generating Imagery...",
                     state="running",
                 )
 
@@ -515,10 +485,10 @@ Return a JSON object containing a single key "chinese_text" holding the extracte
                 )
 
                 status.update(
-                    label="✅ Done", state="complete", expanded=False
+                    label="Done", state="complete", expanded=False
                 )
             else:
-                status.update(label="⚠️ No text", state="error")
+                status.update(label="No text found", state="error")
 
             st.session_state.show_results = True
 
@@ -526,7 +496,7 @@ Return a JSON object containing a single key "chinese_text" holding the extracte
         st.rerun()
 
     # ============================================================
-    # 🖼️ Display Results
+    # Display Results
     # ============================================================
     if st.session_state.show_results:
 
@@ -540,7 +510,7 @@ Return a JSON object containing a single key "chinese_text" holding the extracte
             st.session_state.show_results = False
 
         st.button(
-            "🔄 Scan New Page",
+            "Scan New Page",
             on_click=reset_all,
             use_container_width=True,
             type="secondary",
@@ -548,8 +518,8 @@ Return a JSON object containing a single key "chinese_text" holding the extracte
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ① OCR Extracted Text
-        st.markdown("### 🔍 Extracted Book Text")
+        # Extracted Book Text
+        st.markdown("### Extracted Book Text")
         if st.session_state.ocr_text:
             st.text_area(
                 "Extracted Book Text",
@@ -561,9 +531,9 @@ Return a JSON object containing a single key "chinese_text" holding the extracte
         else:
             st.info("No characters were detected in the image. Please ensure the book text is legible and retake the photo.")
 
-        # ② AI Visual Rendering — clean title → subtitle → full-width image
+        # AI Visual Rendering — full-width pure landscape image
         if st.session_state.final_image_url:
-            st.markdown("### 🎨 AI Visual Rendering")
+            st.markdown("### AI Visual Rendering")
             st.image(
                 st.session_state.final_image_url,
                 use_container_width=True,
@@ -579,7 +549,7 @@ Return a JSON object containing a single key "chinese_text" holding the extracte
             )
 
 # ============================================================
-# 🏠 Empty State Guide — clean frame, single line only
+# Empty State — clean single-line placeholder
 # ============================================================
 else:
     st.markdown(
@@ -588,8 +558,6 @@ else:
                 background:#0a0a0a;border-radius:0px;
                 border:2px solid #0000ff;margin-top:0.5rem;
                 box-shadow:4px 4px 0px #000080;">
-        <div style="font-family:'Courier New',monospace;font-size:2.5rem;margin-bottom:0.8rem;
-                    line-height:1;">📖</div>
         <div style="font-family:'Courier New',monospace;color:#4a90d9;font-size:0.82rem;">
             Upload or snap a page above.
         </div>
@@ -599,12 +567,12 @@ else:
     )
 
 # ============================================================
-# 📱 Footer
+# Footer
 # ============================================================
 st.markdown(
     """
 <div class="footer">
-    VisionReader AI · Art Scenery Book Reader<br>
+    VisionReader AI &middot; Art Scenery Book Reader<br>
     Powered by Gemini Vision &amp; Pollinations AI
 </div>
 """,

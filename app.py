@@ -27,8 +27,7 @@ GEMINI_MODEL = "gemini-2.5-flash"
 
 # Pollinations fixed quality suffix — cinematic conceptual masterpiece render
 STYLE_SUFFIX = (
-    ", A spectacular conceptual masterpiece, breathtaking fantasy cinematic scenery,"
-    " hyper-detailed, epic lighting, dark atmospheric aesthetic, masterpiece, 8k resolution"
+    ", An immense and spectacular conceptual masterpiece, breathtaking pure fantasy or sci-fi geologic landscape scenery, giant scale background environment, dramatic dark atmospheric aesthetic, epic cinematic lighting, masterpiece, 8k resolution, ABSOLUTELY NO humans, NO humanoids, NO animals, NO monsters, NO characters, empty pure landscape environment only"
 )
 
 # ============================================================
@@ -74,17 +73,6 @@ if "img_width" not in st.session_state:
     st.session_state.img_width = 0
 if "img_height" not in st.session_state:
     st.session_state.img_height = 0
-
-# ============================================================
-# 🔄 Reset Callback — clears all state for a fresh scan
-# ============================================================
-def reset_all():
-    st.session_state.upload_key += 1
-    st.session_state.img_hash = ""
-    st.session_state.img_bytes = None
-    st.session_state.ocr_text = ""
-    st.session_state.final_image_url = ""
-    st.session_state.show_results = False
 
 # ============================================================
 # 🎨 Ultimate Dark Cinematic CSS — Art Scenery Theme
@@ -202,18 +190,18 @@ st.markdown(
         padding: 2.5rem 1.5rem !important;
     }
 
-    /* ──  Fix: target ONLY the dropzone button, not file-card buttons  ── */
-    div[data-testid="stFileUploadDropzone"] button div {
+    /* ──  Brutal Fix: hide ALL native uploader internal text  ── */
+    div[data-testid="stFileUploader"] section button div {
         display: none !important;
     }
-    div[data-testid="stFileUploadDropzone"] button::after {
+    div[data-testid="stFileUploader"] section button::after {
         content: "Upload or Snap Page" !important;
         font-family: 'Courier New', monospace !important;
         font-size: 0.95rem !important;
         color: #ffffff !important;
         letter-spacing: 0.06em !important;
     }
-    div[data-testid="stFileUploadDropzone"] button {
+    div[data-testid="stFileUploader"] section button {
         background-color: #0d0d1a !important;
         border: 2px solid #0000ff !important;
         border-radius: 0px !important;
@@ -224,17 +212,17 @@ st.markdown(
     div[data-testid="stFileUploader"] label {
         display: none !important;
     }
-    /* Hide the small "Drag and drop file here" text */
+    /* Also hide the small "Drag and drop file here" text */
     div[data-testid="stFileUploadDropzone"] div[data-testid="stMarkdownContainer"] p {
         display: none !important;
     }
-    /* Hide the file-size-limit hint for cleanliness */
+    /* Keep only the file-size-limit hint if present, hide it too for cleanliness */
     div[data-testid="stFileUploadDropzone"] small {
         display: none !important;
     }
 
     /* ================================================
-       Result Card — electric-blue rectilinear border
+       Result Cards — electric-blue rectilinear border
        ================================================ */
     .result-card {
         background: #0a0a0a;
@@ -243,6 +231,18 @@ st.markdown(
         padding: 1.2rem;
         margin: 0.6rem 0;
         box-shadow: 4px 4px 0px #000080;
+    }
+
+    /* OCR text area — cyan on black */
+    .ocr-area textarea {
+        background: #0a0a0a !important;
+        border: 2px solid #0000ff !important;
+        border-radius: 0px !important;
+        color: #00ffff !important;
+        font-family: 'Courier New', monospace !important;
+        font-size: 0.9rem !important;
+        line-height: 1.8 !important;
+        padding: 0.8rem !important;
     }
 
     /* Generated image display — electric-blue frame */
@@ -325,6 +325,28 @@ st.markdown(
         border-radius: 0px;
     }
 
+    /* Chip labels */
+    .chip {
+        display: inline-block;
+        padding: 0.25rem 0.8rem;
+        border-radius: 0px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.6rem;
+        font-weight: 700;
+    }
+    .chip.ocr {
+        background: #0a0a0a;
+        border: 2px solid #00ffff;
+        color: #00ffff;
+    }
+    .chip.art {
+        background: #0a0a0a;
+        border: 2px solid #ffb8ff;
+        color: #ffb8ff;
+    }
+
     /* Streamlit native notification bars */
     .stAlert {
         border-radius: 0px !important;
@@ -353,7 +375,7 @@ st.markdown(
             height: 110px;
             display: inline-block;
         }
-        div[data-testid="stFileUploadDropzone"] button::after {
+        div[data-testid="stFileUploader"] section button::after {
             font-size: 0.82rem !important;
         }
     }
@@ -401,17 +423,6 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
-
-# ============================================================
-# 🔄 Scan New Page — positioned above uploader when results exist
-# ============================================================
-if st.session_state.show_results:
-    st.button(
-        "🔄 Scan New Page",
-        on_click=reset_all,
-        use_container_width=True,
-        type="secondary",
-    )
 
 # ============================================================
 # 📤 Upload Zone — clean, native, tactile
@@ -525,10 +536,31 @@ if upload_file is not None:
     # ============================================================
     if st.session_state.show_results:
 
+        # Reset button
+        def reset_all():
+            st.session_state.upload_key += 1
+            st.session_state.img_hash = ""
+            st.session_state.img_bytes = None
+            st.session_state.ocr_text = ""
+            st.session_state.final_image_url = ""
+            st.session_state.show_results = False
+
+        st.button(
+            "🔄 Scan New Page",
+            on_click=reset_all,
+            use_container_width=True,
+            type="secondary",
+        )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
         # ① OCR Extracted Text
         st.markdown("### 🔍 Extracted Book Text")
         if st.session_state.ocr_text:
-            st.markdown('<div class="result-card">', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="result-card">',
+                unsafe_allow_html=True,
+            )
             st.text_area(
                 "Extracted Book Text",
                 value=st.session_state.ocr_text,
@@ -536,7 +568,7 @@ if upload_file is not None:
                 key="ocr_display",
                 label_visibility="collapsed",
             )
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
         else:
             st.info("No characters were detected in the image. Please ensure the book text is legible and retake the photo.")
 

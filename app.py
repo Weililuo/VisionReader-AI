@@ -265,25 +265,26 @@ st.markdown(
     .stButton > button {
         border-radius: 0px !important;
         font-family: 'Courier New', monospace !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.06em !important;
-        border: 3px solid #0000ff !important;
+        font-weight: 900 !important;
+        font-size: 1.25rem !important;
+        letter-spacing: 0.08em !important;
+        border: 4px solid #0000ff !important;
         background: #0a0a0a !important;
         color: #ffffff !important;
-        box-shadow: 4px 4px 0px #000080 !important;
-        padding: 0.5rem 1.5rem !important;
-        transition: none !important;
+        padding: 1.2rem 2.5rem !important;
+        box-shadow: 0px 8px 0px #000080 !important;
+        width: 100%;
+        transition: all 0.1s ease !important;
+        cursor: pointer;
     }
     .stButton > button:hover {
         border-color: #4a90d9 !important;
-        color: #ffffff !important;
-        box-shadow:
-            4px 4px 0px #1a3a5c,
-            0 0 12px rgba(74, 144, 217, 0.2) !important;
+        background: #0d0d1a !important;
+        box-shadow: 0px 8px 0px #1a3a5c !important;
     }
     .stButton > button:active {
-        transform: translate(2px, 2px);
-        box-shadow: 2px 2px 0px #000080 !important;
+        transform: translate3d(0, 6px, 0) !important;
+        box-shadow: 0px 2px 0px #000080 !important;
     }
 
     /* Expander panels */
@@ -517,7 +518,9 @@ Return a JSON object with a single key "chinese_text" whose value is all the Chi
                     state="running",
                 )
 
-                final_prompt = chinese_text + STYLE_SUFFIX
+                # Truncate to 150 chars maximum to prevent URL-overlength bugs
+                truncated_text = chinese_text[:150]
+                final_prompt = truncated_text + STYLE_SUFFIX
                 encoded_prompt = urllib.parse.quote(final_prompt, safe="")
                 seed_num = 42520
                 st.session_state.final_image_url = (
@@ -575,6 +578,7 @@ Return a JSON object with a single key "chinese_text" whose value is all the Chi
 
         # ① OCR Extracted Text
         st.markdown("### 🔍 Extracted Book Text")
+        st.markdown("<p style='color: #4a90d9; font-size: 0.85rem; margin-top: -5px;'>🖼️ Art rendering ready below.</p>", unsafe_allow_html=True)
         if st.session_state.ocr_text:
             st.markdown(
                 '<div class="result-card">',

@@ -26,9 +26,12 @@ else:
 GEMINI_MODEL = "gemini-2.5-flash"
 
 # Pollinations fixed quality suffix — cinematic conceptual masterpiece render
+# v7.1: NO humans guard — forces focus on primary creatures / entities in text
 STYLE_SUFFIX = (
     ", A spectacular conceptual masterpiece, breathtaking fantasy cinematic scenery,"
-    " hyper-detailed, epic lighting, dark atmospheric aesthetic, masterpiece, 8k resolution"
+    " centering entirely on the primary creatures or entities described in the text,"
+    " hyper-detailed, epic lighting, dark atmospheric aesthetic, masterpiece,"
+    " NO humans, 8k resolution"
 )
 
 # ============================================================
@@ -183,6 +186,8 @@ st.markdown(
 
     /* ================================================
        Upload Zone — clean rectilinear frame
+       v7.1: Selectors scoped ONLY to dropzone to avoid
+       hijacking the post-upload filename row
        ================================================ */
     [data-testid="stFileUploadDropzone"] {
         border-radius: 0px !important;
@@ -191,18 +196,18 @@ st.markdown(
         padding: 2.5rem 1.5rem !important;
     }
 
-    /* ──  Brutal Fix: hide ALL native uploader internal text  ── */
-    div[data-testid="stFileUploader"] section button div {
+    /* ──  Brutal Fix: hide native uploader text ONLY in dropzone  ── */
+    [data-testid="stFileUploadDropzone"] button div {
         display: none !important;
     }
-    div[data-testid="stFileUploader"] section button::after {
+    [data-testid="stFileUploadDropzone"] button::after {
         content: "Upload or Snap Page" !important;
         font-family: 'Courier New', monospace !important;
         font-size: 0.95rem !important;
         color: #ffffff !important;
         letter-spacing: 0.06em !important;
     }
-    div[data-testid="stFileUploader"] section button {
+    [data-testid="stFileUploadDropzone"] button {
         background-color: #0d0d1a !important;
         border: 2px solid #0000ff !important;
         border-radius: 0px !important;
@@ -214,11 +219,11 @@ st.markdown(
         display: none !important;
     }
     /* Also hide the small "Drag and drop file here" text */
-    div[data-testid="stFileUploadDropzone"] div[data-testid="stMarkdownContainer"] p {
+    [data-testid="stFileUploadDropzone"] [data-testid="stMarkdownContainer"] p {
         display: none !important;
     }
     /* Keep only the file-size-limit hint if present, hide it too for cleanliness */
-    div[data-testid="stFileUploadDropzone"] small {
+    [data-testid="stFileUploadDropzone"] small {
         display: none !important;
     }
 
@@ -376,7 +381,7 @@ st.markdown(
             height: 110px;
             display: inline-block;
         }
-        div[data-testid="stFileUploader"] section button::after {
+        [data-testid="stFileUploadDropzone"] button::after {
             font-size: 0.82rem !important;
         }
     }
@@ -460,12 +465,12 @@ if upload_file is not None:
             st.caption(f"Resolution: {img.width} × {img.height} px")
 
         # Main processing pipeline
-        with st.status("🔍 Vision brain is parsing the book page...", expanded=True) as status:
+        with st.status("📖 Reading page…", expanded=True) as status:
 
             # ================================================
             # Stage 1: Gemini Pure OCR — extract Chinese text
             # ================================================
-            st.write("🔍 **Stage 1/2: Extracting text from book page with precision...**")
+            st.write("🔍 Extracting text…")
 
             ocr_prompt = """你的唯一任务是精准识别并提取这张图片中所有可见的中文文字。
 
@@ -514,7 +519,7 @@ if upload_file is not None:
             # ================================================
             if chinese_text:
                 status.update(
-                    label="🎨 Stage 2/2: Rendering text into cinematic art scenery...",
+                    label="🎨 Generating art…",
                     state="running",
                 )
 
@@ -527,10 +532,10 @@ if upload_file is not None:
                 )
 
                 status.update(
-                    label="🎉 Rendering complete!", state="complete", expanded=False
+                    label="✅ Done", state="complete", expanded=False
                 )
             else:
-                status.update(label="⚠️ No valid text could be extracted", state="error")
+                status.update(label="⚠️ No text", state="error")
 
             st.session_state.show_results = True
 
@@ -586,23 +591,18 @@ if upload_file is not None:
         else:
             st.info("No characters were detected in the image. Please ensure the book text is legible and retake the photo.")
 
-        # ② AI Visual Rendering — full-width display
+        # ② AI Visual Rendering — clean title → subtitle → full-width image
         if st.session_state.final_image_url:
             st.markdown("### 🎨 AI Visual Rendering")
             st.markdown(
-                '<div style="text-align:center;margin:0.4rem 0 0.6rem;">'
+                '<div style="text-align:center;margin:0.4rem 0 0.8rem;">'
                 '<span class="chip art">Cinematic scenery driven by your novel text.</span></div>',
                 unsafe_allow_html=True,
             )
             st.image(
                 st.session_state.final_image_url,
-                caption="Visual realization of the book page text",
                 use_container_width=True,
             )
-
-            # Direct link
-            with st.expander("🔗 Render Direct Link", expanded=False):
-                st.code(st.session_state.final_image_url, language="text")
 
         # Error fallback
         if not st.session_state.ocr_text and not st.session_state.final_image_url:

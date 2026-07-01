@@ -25,9 +25,16 @@ else:
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
-# Pollinations fixed quality suffix — cinematic conceptual masterpiece render
+# v8.5 Elite Composition Guard —
+# 1. Locks background geology/scenery as primary canvas (>70% frame size).
+# 2. Empowers non-human subjects (creatures/entities) as secondary accents.
+# 3. Absolute ban on casual humans/humanoids unless explicitly named or occupying >70% of text focus.
 STYLE_SUFFIX = (
-    ", A highly precise visual realization of the provided text, literal translation of the described scene into a cinematic conceptual masterpiece, strict fidelity to the exact text description, absolute zero AI hallucinations, do NOT invent or add any characters, creatures, or objects not mentioned in the text, focus entirely on rendering the exact background, atmosphere, and environment described above, dark atmospheric aesthetic, masterpiece, 8k resolution"
+    ", An immense and spectacular conceptual masterpiece, groundbreaking wide-angle fantasy or sci-fi geologic landscape scenery, "
+    "grand-scale composition where the background geology, atmosphere, and environment dominate over 70% of the frame, "
+    "the text-described creatures, entities, or non-human primary subjects must be secondary and tiny in scale (less than 10% in size) used only to establish context, "
+    "strictly NO humans, NO humanoids, NO bystanders, and NO human figures of any kind unless an actual human name or human character description explicitly dominates over 70% of the text content, "
+    "NO close-ups, dark atmospheric aesthetic, epic cinematic lighting, masterpiece, 8k resolution"
 )
 
 # ============================================================

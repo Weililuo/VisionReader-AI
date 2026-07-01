@@ -181,44 +181,49 @@ st.markdown(
     }
 
     /* ================================================
-       Upload Zone — clean rectilinear frame
+       📸 Upload Zone — Centered Camera UI
+       Pure visual touch sensor, no text clutter
        ================================================ */
+
+    /* ──  Obliterate ALL native text inside upload component  ── */
+    div[data-testid="stFileUploader"] section button div,
+    div[data-testid="stFileUploadDropzone"] div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stFileUploadDropzone"] small,
+    div[data-testid="stFileUploader"] label {
+        display: none !important;
+    }
+
+    /* Dropzone — dark canvas with blue border */
     [data-testid="stFileUploadDropzone"] {
         border-radius: 0px !important;
         border: 3px solid #0000ff !important;
         background: #0a0a0a !important;
-        padding: 2.5rem 1.5rem !important;
+        padding: 0px !important;
     }
 
-    /* ──  Brutal Fix: only restyle the dropzone button (absent when file is uploaded)  ── */
-    div[data-testid="stFileUploadDropzone"] button div {
-        display: none !important;
-    }
-    div[data-testid="stFileUploadDropzone"] button::after {
-        content: "Upload or Snap Page" !important;
-        font-family: 'Courier New', monospace !important;
-        font-size: 0.95rem !important;
-        color: #ffffff !important;
-        letter-spacing: 0.06em !important;
-    }
-    div[data-testid="stFileUploadDropzone"] button {
-        background-color: #0d0d1a !important;
-        border: 2px solid #0000ff !important;
+    /* ──  Centered camera button — the only visible element  ── */
+    div[data-testid="stFileUploader"] section button {
+        background-color: #0a0a0a !important;
+        border: 3px solid #0000ff !important;
         border-radius: 0px !important;
-        padding: 1.5rem !important;
+        padding: 3.5rem 1.5rem !important;
         width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: relative !important;
     }
-    /* Hide the outer label that duplicates text */
-    div[data-testid="stFileUploader"] label {
-        display: none !important;
-    }
-    /* Also hide the small "Drag and drop file here" text */
-    div[data-testid="stFileUploadDropzone"] div[data-testid="stMarkdownContainer"] p {
-        display: none !important;
-    }
-    /* Keep only the file-size-limit hint if present, hide it too for cleanliness */
-    div[data-testid="stFileUploadDropzone"] small {
-        display: none !important;
+
+    /* 📸 Camera icon + "Snap or Upload" — perfectly centered */
+    div[data-testid="stFileUploader"] section button::after {
+        content: "📸\a\aSnap or Upload" !important;
+        white-space: pre-wrap !important;
+        text-align: center !important;
+        font-family: 'Courier New', monospace !important;
+        font-size: 1.1rem !important;
+        font-weight: bold !important;
+        color: #ffffff !important;
+        letter-spacing: 0.05em !important;
     }
 
     /* ================================================
@@ -363,8 +368,11 @@ st.markdown(
         h1 {
             font-size: 1.4rem !important;
         }
-        [data-testid="stFileUploadDropzone"] {
-            padding: 1.5rem 1rem !important;
+        div[data-testid="stFileUploader"] section button {
+            padding: 2rem 1rem !important;
+        }
+        div[data-testid="stFileUploader"] section button::after {
+            font-size: 0.9rem !important;
         }
         .marquee-outer {
             height: 120px;
@@ -374,9 +382,6 @@ st.markdown(
         .marquee-track img {
             height: 110px;
             display: inline-block;
-        }
-        div[data-testid="stFileUploadDropzone"] button::after {
-            font-size: 0.82rem !important;
         }
     }
 </style>

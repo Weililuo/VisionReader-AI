@@ -190,18 +190,18 @@ st.markdown(
         padding: 2.5rem 1.5rem !important;
     }
 
-    /* ──  Brutal Fix: hide ALL native uploader internal text  ── */
-    div[data-testid="stFileUploader"] section button div {
+    /* ──  Brutal Fix: only restyle the dropzone button (absent when file is uploaded)  ── */
+    div[data-testid="stFileUploadDropzone"] button div {
         display: none !important;
     }
-    div[data-testid="stFileUploader"] section button::after {
+    div[data-testid="stFileUploadDropzone"] button::after {
         content: "Upload or Snap Page" !important;
         font-family: 'Courier New', monospace !important;
         font-size: 0.95rem !important;
         color: #ffffff !important;
         letter-spacing: 0.06em !important;
     }
-    div[data-testid="stFileUploader"] section button {
+    div[data-testid="stFileUploadDropzone"] button {
         background-color: #0d0d1a !important;
         border: 2px solid #0000ff !important;
         border-radius: 0px !important;
@@ -375,7 +375,7 @@ st.markdown(
             height: 110px;
             display: inline-block;
         }
-        div[data-testid="stFileUploader"] section button::after {
+        div[data-testid="stFileUploadDropzone"] button::after {
             font-size: 0.82rem !important;
         }
     }
@@ -461,15 +461,15 @@ if upload_file is not None:
             # ================================================
             st.write("🔍 Extracting Text...")
 
-            ocr_prompt = """你的唯一任务是精准识别并提取这张图片中所有可见的中文文字。
+            ocr_prompt = """Your sole task is to accurately recognize and extract all visible Chinese text from this image.
 
-规则：
-1. 保留原文的段落结构、换行和标点符号。
-2. 如果图片中没有中文文字，返回空字符串。
-3. 不要添加任何解释、点评或额外内容。
-4. 不要翻译，不要总结，只做纯 OCR 提取。
+Rules:
+1. Preserve the original paragraph structure, line breaks, and punctuation exactly as they appear.
+2. If there is no Chinese text in the image, return an empty string.
+3. Do not add any explanations, commentary, or extra content of any kind.
+4. Do not translate, do not summarize — perform pure OCR extraction only.
 
-返回一个 JSON，包含一个键 "chinese_text"，值为你识别到的全部中文文字。"""
+Return a JSON object with a single key "chinese_text" whose value is all the Chinese text you recognized."""
 
             json_schema = {
                 "type": "OBJECT",
@@ -532,11 +532,24 @@ if upload_file is not None:
         st.rerun()
 
     # ============================================================
-    # 🖼️ Display Results
+    # 🖼️ Display Results — Three-box merge: uploader vanishes,
+    #    "Scan New Page" button takes its place in situ.
     # ============================================================
     if st.session_state.show_results:
 
-        # Reset button
+        # Dynamically hide the file uploader so the button replaces it visually
+        st.markdown(
+            """
+        <style>
+            div[data-testid="stFileUploader"] {
+                display: none !important;
+            }
+        </style>
+        """,
+            unsafe_allow_html=True,
+        )
+
+        # Reset callback
         def reset_all():
             st.session_state.upload_key += 1
             st.session_state.img_hash = ""
@@ -545,6 +558,7 @@ if upload_file is not None:
             st.session_state.final_image_url = ""
             st.session_state.show_results = False
 
+        # "Scan New Page" — sits exactly where the uploader was, full-width rectilinear key
         st.button(
             "🔄 Scan New Page",
             on_click=reset_all,

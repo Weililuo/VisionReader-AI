@@ -76,6 +76,17 @@ if "img_height" not in st.session_state:
     st.session_state.img_height = 0
 
 # ============================================================
+# 🔄 Reset Callback — clears all state for a fresh scan
+# ============================================================
+def reset_all():
+    st.session_state.upload_key += 1
+    st.session_state.img_hash = ""
+    st.session_state.img_bytes = None
+    st.session_state.ocr_text = ""
+    st.session_state.final_image_url = ""
+    st.session_state.show_results = False
+
+# ============================================================
 # 🎨 Ultimate Dark Cinematic CSS — Art Scenery Theme
 # ============================================================
 st.markdown(
@@ -191,18 +202,18 @@ st.markdown(
         padding: 2.5rem 1.5rem !important;
     }
 
-    /* ──  Brutal Fix: hide ALL native uploader internal text  ── */
-    div[data-testid="stFileUploader"] section button div {
+    /* ──  Fix: target ONLY the dropzone button, not file-card buttons  ── */
+    div[data-testid="stFileUploadDropzone"] button div {
         display: none !important;
     }
-    div[data-testid="stFileUploader"] section button::after {
+    div[data-testid="stFileUploadDropzone"] button::after {
         content: "Upload or Snap Page" !important;
         font-family: 'Courier New', monospace !important;
         font-size: 0.95rem !important;
         color: #ffffff !important;
         letter-spacing: 0.06em !important;
     }
-    div[data-testid="stFileUploader"] section button {
+    div[data-testid="stFileUploadDropzone"] button {
         background-color: #0d0d1a !important;
         border: 2px solid #0000ff !important;
         border-radius: 0px !important;
@@ -213,17 +224,17 @@ st.markdown(
     div[data-testid="stFileUploader"] label {
         display: none !important;
     }
-    /* Also hide the small "Drag and drop file here" text */
+    /* Hide the small "Drag and drop file here" text */
     div[data-testid="stFileUploadDropzone"] div[data-testid="stMarkdownContainer"] p {
         display: none !important;
     }
-    /* Keep only the file-size-limit hint if present, hide it too for cleanliness */
+    /* Hide the file-size-limit hint for cleanliness */
     div[data-testid="stFileUploadDropzone"] small {
         display: none !important;
     }
 
     /* ================================================
-       Result Cards — electric-blue rectilinear border
+       Result Card — electric-blue rectilinear border
        ================================================ */
     .result-card {
         background: #0a0a0a;
@@ -232,18 +243,6 @@ st.markdown(
         padding: 1.2rem;
         margin: 0.6rem 0;
         box-shadow: 4px 4px 0px #000080;
-    }
-
-    /* OCR text area — cyan on black */
-    .ocr-area textarea {
-        background: #0a0a0a !important;
-        border: 2px solid #0000ff !important;
-        border-radius: 0px !important;
-        color: #00ffff !important;
-        font-family: 'Courier New', monospace !important;
-        font-size: 0.9rem !important;
-        line-height: 1.8 !important;
-        padding: 0.8rem !important;
     }
 
     /* Generated image display — electric-blue frame */
@@ -326,28 +325,6 @@ st.markdown(
         border-radius: 0px;
     }
 
-    /* Chip labels */
-    .chip {
-        display: inline-block;
-        padding: 0.25rem 0.8rem;
-        border-radius: 0px;
-        font-family: 'Courier New', monospace;
-        font-size: 0.68rem;
-        letter-spacing: 0.06em;
-        margin-bottom: 0.6rem;
-        font-weight: 700;
-    }
-    .chip.ocr {
-        background: #0a0a0a;
-        border: 2px solid #00ffff;
-        color: #00ffff;
-    }
-    .chip.art {
-        background: #0a0a0a;
-        border: 2px solid #ffb8ff;
-        color: #ffb8ff;
-    }
-
     /* Streamlit native notification bars */
     .stAlert {
         border-radius: 0px !important;
@@ -376,7 +353,7 @@ st.markdown(
             height: 110px;
             display: inline-block;
         }
-        div[data-testid="stFileUploader"] section button::after {
+        div[data-testid="stFileUploadDropzone"] button::after {
             font-size: 0.82rem !important;
         }
     }
@@ -426,6 +403,17 @@ st.markdown(
 )
 
 # ============================================================
+# 🔄 Scan New Page — positioned above uploader when results exist
+# ============================================================
+if st.session_state.show_results:
+    st.button(
+        "🔄 Scan New Page",
+        on_click=reset_all,
+        use_container_width=True,
+        type="secondary",
+    )
+
+# ============================================================
 # 📤 Upload Zone — clean, native, tactile
 # ============================================================
 upload_file = st.file_uploader(
@@ -454,18 +442,13 @@ if upload_file is not None:
         st.session_state.img_width = img.width
         st.session_state.img_height = img.height
 
-        # Book page snapshot preview (collapsed)
-        with st.expander("👁️ View Book Page Snapshot", expanded=False):
-            st.image(img, use_container_width=True)
-            st.caption(f"Resolution: {img.width} × {img.height} px")
-
         # Main processing pipeline
-        with st.status("🔍 Vision brain is parsing the book page...", expanded=True) as status:
+        with st.status("📖 Reading Page...", expanded=True) as status:
 
             # ================================================
             # Stage 1: Gemini Pure OCR — extract Chinese text
             # ================================================
-            st.write("🔍 **Stage 1/2: Extracting text from book page with precision...**")
+            st.write("🔍 Extracting Text...")
 
             ocr_prompt = """你的唯一任务是精准识别并提取这张图片中所有可见的中文文字。
 
@@ -514,7 +497,7 @@ if upload_file is not None:
             # ================================================
             if chinese_text:
                 status.update(
-                    label="🎨 Stage 2/2: Rendering text into cinematic art scenery...",
+                    label="🎨 Rendering Scenery...",
                     state="running",
                 )
 
@@ -527,7 +510,7 @@ if upload_file is not None:
                 )
 
                 status.update(
-                    label="🎉 Rendering complete!", state="complete", expanded=False
+                    label="🎉 Render Complete!", state="complete", expanded=False
                 )
             else:
                 status.update(label="⚠️ No valid text could be extracted", state="error")
@@ -542,39 +525,10 @@ if upload_file is not None:
     # ============================================================
     if st.session_state.show_results:
 
-        # Reset button
-        def reset_all():
-            st.session_state.upload_key += 1
-            st.session_state.img_hash = ""
-            st.session_state.img_bytes = None
-            st.session_state.ocr_text = ""
-            st.session_state.final_image_url = ""
-            st.session_state.show_results = False
-
-        st.button(
-            "🔄 Scan New Page",
-            on_click=reset_all,
-            use_container_width=True,
-            type="secondary",
-        )
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # Book page snapshot
-        with st.expander("👁️ View Book Page Snapshot", expanded=False):
-            img = Image.open(io.BytesIO(st.session_state.img_bytes))
-            st.image(img, use_container_width=True)
-            st.caption(
-                f"Resolution: {st.session_state.img_width} × {st.session_state.img_height} px"
-            )
-
         # ① OCR Extracted Text
         st.markdown("### 🔍 Extracted Book Text")
         if st.session_state.ocr_text:
-            st.markdown(
-                '<div class="result-card"><span class="chip ocr">OCR Result</span>',
-                unsafe_allow_html=True,
-            )
+            st.markdown('<div class="result-card">', unsafe_allow_html=True)
             st.text_area(
                 "Extracted Book Text",
                 value=st.session_state.ocr_text,
@@ -582,27 +536,17 @@ if upload_file is not None:
                 key="ocr_display",
                 label_visibility="collapsed",
             )
-            st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
             st.info("No characters were detected in the image. Please ensure the book text is legible and retake the photo.")
 
         # ② AI Visual Rendering — full-width display
         if st.session_state.final_image_url:
             st.markdown("### 🎨 AI Visual Rendering")
-            st.markdown(
-                '<div style="text-align:center;margin:0.4rem 0 0.6rem;">'
-                '<span class="chip art">Cinematic scenery driven by your novel text.</span></div>',
-                unsafe_allow_html=True,
-            )
             st.image(
                 st.session_state.final_image_url,
-                caption="Visual realization of the book page text",
                 use_container_width=True,
             )
-
-            # Direct link
-            with st.expander("🔗 Render Direct Link", expanded=False):
-                st.code(st.session_state.final_image_url, language="text")
 
         # Error fallback
         if not st.session_state.ocr_text and not st.session_state.final_image_url:

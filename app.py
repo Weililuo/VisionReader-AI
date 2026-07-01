@@ -28,10 +28,10 @@ GEMINI_MODEL = "gemini-2.5-flash"
 # Pollinations fixed quality suffix — cinematic conceptual masterpiece render
 # v7.1: NO humans guard — forces focus on primary creatures / entities in text
 STYLE_SUFFIX = (
-    ", A spectacular conceptual masterpiece, breathtaking fantasy cinematic scenery,"
-    " centering entirely on the primary creatures or entities described in the text,"
-    " hyper-detailed, epic lighting, dark atmospheric aesthetic, masterpiece,"
-    " NO humans, 8k resolution"
+    ", A spectacular conceptual masterpiece, breathtaking fantasy cinematic scenery, "
+    "strictly focus on text subjects or pure landscape environment, "
+    "absolutely NO humans or humanoids unless explicitly named in the text, "
+    "epic lighting, dark atmospheric aesthetic, masterpiece, 8k resolution"
 )
 
 # ============================================================
@@ -459,11 +459,6 @@ if upload_file is not None:
         st.session_state.img_width = img.width
         st.session_state.img_height = img.height
 
-        # Book page snapshot preview (collapsed)
-        with st.expander("👁️ View Book Page Snapshot", expanded=False):
-            st.image(img, use_container_width=True)
-            st.caption(f"Resolution: {img.width} × {img.height} px")
-
         # Main processing pipeline
         with st.status("📖 Reading page…", expanded=True) as status:
 
@@ -523,7 +518,7 @@ Return a JSON object containing a single key "chinese_text" holding the extracte
                     state="running",
                 )
 
-                final_prompt = chinese_text + STYLE_SUFFIX
+                final_prompt = chinese_text[:150] + STYLE_SUFFIX
                 encoded_prompt = urllib.parse.quote(final_prompt, safe="")
                 seed_num = 42520
                 st.session_state.final_image_url = (
@@ -565,21 +560,9 @@ Return a JSON object containing a single key "chinese_text" holding the extracte
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Book page snapshot
-        with st.expander("👁️ View Book Page Snapshot", expanded=False):
-            img = Image.open(io.BytesIO(st.session_state.img_bytes))
-            st.image(img, use_container_width=True)
-            st.caption(
-                f"Resolution: {st.session_state.img_width} × {st.session_state.img_height} px"
-            )
-
         # ① OCR Extracted Text
         st.markdown("### 🔍 Extracted Book Text")
         if st.session_state.ocr_text:
-            st.markdown(
-                '<div class="result-card"><span class="chip ocr">OCR Result</span>',
-                unsafe_allow_html=True,
-            )
             st.text_area(
                 "Extracted Book Text",
                 value=st.session_state.ocr_text,
@@ -587,18 +570,12 @@ Return a JSON object containing a single key "chinese_text" holding the extracte
                 key="ocr_display",
                 label_visibility="collapsed",
             )
-            st.markdown("</div>", unsafe_allow_html=True)
         else:
             st.info("No characters were detected in the image. Please ensure the book text is legible and retake the photo.")
 
         # ② AI Visual Rendering — clean title → subtitle → full-width image
         if st.session_state.final_image_url:
             st.markdown("### 🎨 AI Visual Rendering")
-            st.markdown(
-                '<div style="text-align:center;margin:0.4rem 0 0.8rem;">'
-                '<span class="chip art">Cinematic scenery driven by your novel text.</span></div>',
-                unsafe_allow_html=True,
-            )
             st.image(
                 st.session_state.final_image_url,
                 use_container_width=True,

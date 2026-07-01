@@ -25,8 +25,10 @@ else:
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
-# Pollinations style suffix — disabled; using pure text only for authentic alignment
-STYLE_SUFFIX = ""
+# Pollinations fixed quality suffix — cinematic conceptual masterpiece render
+STYLE_SUFFIX = (
+    ", An immense and spectacular conceptual masterpiece, breathtaking pure fantasy or sci-fi geologic landscape scenery, giant scale background environment, dramatic dark atmospheric aesthetic, epic cinematic lighting, masterpiece, 8k resolution, ABSOLUTELY NO humans, NO humanoids, NO animals, NO monsters, NO characters, empty pure landscape environment only"
+)
 
 # ============================================================
 # 📱 Streamlit Page Configuration
@@ -518,7 +520,7 @@ Return a JSON object with a single key "chinese_text" whose value is all the Chi
 
                 # Truncate to 150 chars maximum to prevent URL-overlength bugs
                 truncated_text = chinese_text[:150]
-                final_prompt = truncated_text
+                final_prompt = truncated_text + STYLE_SUFFIX
                 encoded_prompt = urllib.parse.quote(final_prompt, safe="")
                 seed_num = 42520
                 st.session_state.final_image_url = (
@@ -575,17 +577,19 @@ Return a JSON object with a single key "chinese_text" whose value is all the Chi
         st.markdown("<br>", unsafe_allow_html=True)
 
         # ① OCR Extracted Text
+        st.markdown("### 🔍 Extracted Book Text")
+        st.markdown("<p style='color: #4a90d9; font-size: 0.85rem; margin-top: -5px;'>🖼️ Art rendering ready below.</p>", unsafe_allow_html=True)
         if st.session_state.ocr_text:
             st.markdown(
                 '<div class="result-card">',
                 unsafe_allow_html=True,
             )
             st.text_area(
-                "🔍 Extracted Book Text  ·  🖼️ Art rendering ready below.",
+                "Extracted Book Text",
                 value=st.session_state.ocr_text,
                 height=200,
                 key="ocr_display",
-                label_visibility="visible",
+                label_visibility="collapsed",
             )
             st.markdown("</div>", unsafe_allow_html=True)
         else:

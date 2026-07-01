@@ -468,19 +468,19 @@ if upload_file is not None:
         with st.status("📖 Reading page…", expanded=True) as status:
 
             # ================================================
-            # Stage 1: Gemini Pure OCR — extract Chinese text
+            # Phase 1: Pure Gemini OCR Extraction
             # ================================================
-            st.write("🔍 Extracting text…")
+            st.write("🔍 Extracting Text...")
 
-            ocr_prompt = """你的唯一任务是精准识别并提取这张图片中所有可见的中文文字。
+            ocr_prompt = """You are an expert OCR specialist. Your sole task is to accurately recognize and extract all visible Chinese text from this image.
 
-规则：
-1. 保留原文的段落结构、换行和标点符号。
-2. 如果图片中没有中文文字，返回空字符串。
-3. 不要添加任何解释、点评或额外内容。
-4. 不要翻译，不要总结，只做纯 OCR 提取。
+Rules:
+1. Maintain the original paragraph structure, line breaks, and punctuation exactly.
+2. If no Chinese text is detected in the image, return an empty string.
+3. Do not add any extra explanations, notes, or contextual commentary.
+4. Do not translate the text; perform pure, literal OCR extraction.
 
-返回一个 JSON，包含一个键 "chinese_text"，值为你识别到的全部中文文字。"""
+Return a JSON object containing a single key "chinese_text" holding the extracted content."""
 
             json_schema = {
                 "type": "OBJECT",
@@ -519,7 +519,7 @@ if upload_file is not None:
             # ================================================
             if chinese_text:
                 status.update(
-                    label="🎨 Generating art…",
+                    label="🎨 Generating Imagery...",
                     state="running",
                 )
 

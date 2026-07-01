@@ -26,14 +26,18 @@ else:
 GEMINI_MODEL = "gemini-2.5-flash"
 
 # Pollinations 固定画质后缀（确定性生图，不经过 AI 脑补）
-STYLE_SUFFIX = ", masterpiece, highly detailed, cinematic lighting, 8K"
+STYLE_SUFFIX = (
+    ", A comprehensive widescreen ensemble poster, an aventuring party, grouping all"
+    " standard characters described into a unified fantasy cinematic scenery,"
+    " 8-bit pixel art style, high detailed masterwork"
+)
 
 # ============================================================
 # 📱 Streamlit 页面配置
 # ============================================================
 st.set_page_config(
-    page_title="VisionReader AI · 视界阅读",
-    page_icon="📖",
+    page_title="🕹️ VisionReader AI · 像素视界",
+    page_icon="👾",
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
@@ -78,9 +82,13 @@ if "img_height" not in st.session_state:
 st.markdown(
     """
 <style>
-    /* 全局暗色基底 */
+    /* ================================================
+       8-BIT PAC-MAN ARCADE THEME · 吃豆人复古像素风
+       ================================================ */
+
+    /* 全局 — 吃豆人经典纯黑底 */
     .stApp {
-        background: #0a0a15;
+        background: #000000;
     }
 
     /* 隐藏无关 chrome */
@@ -88,139 +96,242 @@ st.markdown(
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; }
 
-    /* 主容器全宽舒展 */
+    /* CRT 扫描线叠加（复古街机屏） */
+    .stApp::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: repeating-linear-gradient(
+            0deg,
+            rgba(0,0,0,0.12) 0px,
+            rgba(0,0,0,0.12) 2px,
+            transparent 2px,
+            transparent 4px
+        );
+        pointer-events: none;
+        z-index: 9999;
+    }
+
+    /* 主容器 */
     .main .block-container {
         max-width: 900px !important;
         padding: 2rem 1.5rem 3rem !important;
     }
 
-    /* 品牌标题 */
+    /* 品牌标题 — 吃豆人亮黄 */
     h1 {
-        font-size: 1.8rem !important;
+        font-family: 'Courier New', monospace !important;
+        font-size: 2rem !important;
         font-weight: 700 !important;
-        color: #e0e0f0 !important;
+        color: #ffff00 !important;
         text-align: center;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
         margin-bottom: 0.3rem !important;
         padding-top: 1rem !important;
+        text-shadow:
+            3px 3px 0px #000000,
+            0px 0px 20px rgba(255,255,0,0.4);
+        image-rendering: pixelated;
     }
 
-    /* 副标题 */
+    /* 全局正文 — 等宽像素字体 */
+    body, p, div, span, label, button, input, textarea, caption, .stMarkdown {
+        font-family: 'Courier New', monospace !important;
+    }
+
+    /* 副标题 — 幽灵青色 */
     .subtitle {
         text-align: center;
-        color: #6a6a8a;
-        font-size: 0.82rem;
+        color: #00ffff;
+        font-size: 0.85rem;
         margin-bottom: 2.2rem;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.08em;
+        text-shadow: 0px 0px 10px rgba(0,255,255,0.5);
     }
 
-    /* 上传提示大字 */
+    /* 上传提示 */
     .upload-hint {
         text-align: center;
-        color: #a0a0c0;
-        font-size: 0.95rem;
+        color: #ffff00;
+        font-size: 0.92rem;
         font-weight: 600;
         margin-bottom: 0.8rem;
         line-height: 1.8;
     }
 
-    /* 文件上传器 — 巨型高亮 */
+    /* ================================================
+       上传区 — 街机 "INSERT COIN" 像素大色块
+       ================================================ */
     [data-testid="stFileUploadDropzone"] {
-        border-radius: 16px !important;
-        border: 2px dashed rgba(139, 92, 246, 0.4) !important;
-        padding: 2.5rem 1.5rem !important;
-        background: rgba(139, 92, 246, 0.04) !important;
-        transition: border-color 0.2s, background 0.2s !important;
+        border-radius: 0px !important;
+        border: 4px solid #0000ff !important;
+        padding: 2.8rem 1.5rem !important;
+        background: #000000 !important;
+        color: #ffff00 !important;
+        font-family: 'Courier New', monospace !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        box-shadow:
+            inset 0 0 20px rgba(0,0,255,0.2),
+            0 0 15px rgba(0,0,255,0.4),
+            8px 8px 0px #000080 !important;
+        image-rendering: pixelated;
+        transition: none !important;
     }
     [data-testid="stFileUploadDropzone"]:hover {
-        border-color: rgba(139, 92, 246, 0.7) !important;
-        background: rgba(139, 92, 246, 0.07) !important;
+        border-color: #ffff00 !important;
+        box-shadow:
+            inset 0 0 30px rgba(0,0,255,0.3),
+            0 0 25px rgba(255,255,0,0.5),
+            8px 8px 0px #808000 !important;
     }
 
-    /* 结果卡片 */
+    /* ================================================
+       结果卡片 — 霓虹蓝迷宫围墙
+       ================================================ */
     .result-card {
-        background: rgba(20, 20, 40, 0.45);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 14px;
+        background: #000000;
+        border: 3px solid #0000ff;
+        border-radius: 0px;
         padding: 1.2rem;
         margin: 0.6rem 0;
+        box-shadow: 0 0 10px rgba(0,0,255,0.3), 4px 4px 0px #000080;
+        font-family: 'Courier New', monospace;
     }
 
-    /* OCR 文本框 */
+    /* OCR 文本框 — 幽灵青色发光 */
     .ocr-area textarea {
-        background: rgba(15, 15, 30, 0.5) !important;
-        border: 1px solid rgba(96, 165, 250, 0.18) !important;
-        border-radius: 12px !important;
-        color: #d0d0e8 !important;
+        background: #000000 !important;
+        border: 3px solid #0000ff !important;
+        border-radius: 0px !important;
+        color: #00ffff !important;
+        font-family: 'Courier New', monospace !important;
         font-size: 0.9rem !important;
         line-height: 1.8 !important;
         padding: 0.8rem !important;
+        box-shadow:
+            inset 0 0 15px rgba(0,0,255,0.1),
+            0 0 10px rgba(0,0,255,0.2);
     }
 
-    /* 生图展示 — 全宽震撼 */
+    /* 生成图片展示 — 像素画框 */
     .stImage img {
-        border-radius: 14px !important;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+        border-radius: 0px !important;
+        border: 3px solid #0000ff !important;
+        box-shadow:
+            0 0 20px rgba(0,0,255,0.4),
+            0 12px 40px rgba(0,0,0,0.5),
+            4px 4px 0px #000080 !important;
+        image-rendering: pixelated;
     }
 
-    /* 按钮 */
+    /* ================================================
+       按钮 — 街机像素大色块 "START GAME"
+       ================================================ */
     .stButton > button {
-        border-radius: 30px !important;
-        font-weight: 600 !important;
-        letter-spacing: 0.04em !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 0px !important;
+        font-family: 'Courier New', monospace !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.06em !important;
+        border: 3px solid #0000ff !important;
+        background: #000000 !important;
+        color: #ffff00 !important;
+        box-shadow: 4px 4px 0px #000080 !important;
+        text-transform: uppercase;
+        transition: none !important;
+        image-rendering: pixelated;
+        padding: 0.5rem 1.5rem !important;
+    }
+    .stButton > button:hover {
+        border-color: #ffff00 !important;
+        color: #ffff00 !important;
+        box-shadow:
+            4px 4px 0px #808000,
+            0 0 15px rgba(255,255,0,0.3) !important;
+    }
+    .stButton > button:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px #000080 !important;
     }
 
     /* 展开面板 */
     .streamlit-expanderHeader {
-        border-radius: 12px !important;
-        background: rgba(20, 20, 40, 0.3) !important;
-        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: 0px !important;
+        background: #000000 !important;
+        border: 2px solid #0000ff !important;
+        font-family: 'Courier New', monospace !important;
         font-size: 0.82rem !important;
+        color: #00ffff !important;
     }
 
     /* 状态组件 */
     .stStatus {
-        border-radius: 12px !important;
-        border: 1px solid rgba(255, 255, 255, 0.06) !important;
-        background: rgba(15, 15, 30, 0.4) !important;
+        border-radius: 0px !important;
+        border: 3px solid #0000ff !important;
+        background: #000000 !important;
+        font-family: 'Courier New', monospace !important;
     }
 
-    /* 分割线 */
+    /* 分割线 — 像素虚线迷宫墙 */
     hr {
-        border-color: rgba(255, 255, 255, 0.06) !important;
+        border: none !important;
+        border-top: 2px dashed #0000ff !important;
         margin: 1.6rem 0 !important;
     }
 
     /* 底部 */
     .footer {
         text-align: center;
-        color: rgba(255, 255, 255, 0.1);
+        color: #0000ff;
+        font-family: 'Courier New', monospace;
         font-size: 0.64rem;
         padding: 2.5rem 0 0.5rem;
         letter-spacing: 0.05em;
+        text-shadow: 0px 0px 6px rgba(0,0,255,0.4);
     }
 
-    /* 滚动条 */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
+    /* 滚动条 — 霓虹蓝像素条 */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #000000; }
     ::-webkit-scrollbar-thumb {
-        background: rgba(139, 92, 246, 0.2);
-        border-radius: 8px;
+        background: #0000ff;
+        border-radius: 0px;
+        box-shadow: 0 0 6px rgba(0,0,255,0.5);
     }
 
-    /* 胶囊标签 */
+    /* 胶囊标签 — 像素幽灵色 */
     .chip {
         display: inline-block;
-        padding: 0.22rem 0.7rem;
-        border-radius: 50px;
-        font-size: 0.66rem;
-        letter-spacing: 0.05em;
+        padding: 0.25rem 0.8rem;
+        border-radius: 0px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
         margin-bottom: 0.6rem;
-        font-weight: 600;
+        font-weight: 700;
     }
-    .chip.ocr  { background: rgba(96,165,250,0.1);  border:1px solid rgba(96,165,250,0.2);  color:#93c5fd; }
-    .chip.art  { background: rgba(52,211,153,0.1);  border:1px solid rgba(52,211,153,0.18); color:#34d399; }
+    .chip.ocr {
+        background: #000000;
+        border: 2px solid #00ffff;
+        color: #00ffff;
+        text-shadow: 0 0 6px rgba(0,255,255,0.5);
+    }
+    .chip.art {
+        background: #000000;
+        border: 2px solid #ffb8ff;
+        color: #ffb8ff;
+        text-shadow: 0 0 6px rgba(255,184,255,0.5);
+    }
+
+    /* Streamlit 原生通知条 */
+    .stAlert {
+        border-radius: 0px !important;
+        border: 2px solid #0000ff !important;
+        background: #000000 !important;
+        font-family: 'Courier New', monospace !important;
+    }
 
     /* 移动端适配 */
     @media (max-width: 640px) {
@@ -228,7 +339,10 @@ st.markdown(
             padding: 1rem 1rem 3rem !important;
         }
         h1 {
-            font-size: 1.5rem !important;
+            font-size: 1.4rem !important;
+        }
+        [data-testid="stFileUploadDropzone"] {
+            padding: 2rem 1rem !important;
         }
     }
 </style>
@@ -241,8 +355,8 @@ st.markdown(
 # ============================================================
 st.markdown(
     """
-<h1>📖 VisionReader AI</h1>
-<p class="subtitle">拍下书页 · 看见故事 · 沉浸意境</p>
+<h1>👾 VisionReader AI</h1>
+<p class="subtitle">🕹️ 拍下书页 · 看见故事 · 像素视界</p>
 """,
     unsafe_allow_html=True,
 )
@@ -252,13 +366,13 @@ st.markdown(
 # ============================================================
 st.markdown(
     '<p class="upload-hint">'
-    '📸 点击下方按钮选择 <b>【拍照】</b>（自动唤起手机原生后置超清相机）'
-    ' 或 <b>【从相册选择书页】</b></p>',
+    '🕹️ 点击下方 <b>【INSERT COIN】</b> 按钮 — 选择 '
+    '<b>【拍照】</b>（自动唤起手机原生后置超清相机）或 <b>【从相册选择】</b></p>',
     unsafe_allow_html=True,
 )
 
 upload_file = st.file_uploader(
-    "📤 点击此处 — 拍照或选择书页照片",
+    "🕹️ INSERT COIN — 点击拍照或选择书页",
     type=["jpg", "jpeg", "png", "heic", "webp"],
     key=f"upload_{st.session_state.upload_key}",
     help="支持 JPG / PNG / HEIC / WebP 格式。手机端将唤起原生相机，画质远超网页摄像头。",
@@ -350,7 +464,7 @@ if upload_file is not None:
                 # 中文原文 + 固定画质后缀，直接 URL 编码喂给 Pollinations
                 final_prompt = chinese_text + STYLE_SUFFIX
                 encoded_prompt = urllib.parse.quote(final_prompt, safe="")
-                seed_num = random.randint(1, 99999)
+                seed_num = 42520
                 st.session_state.final_image_url = (
                     f"https://image.pollinations.ai/prompt/{encoded_prompt}"
                     f"?width=1024&height=1536&nologo=true&seed={seed_num}"
@@ -382,7 +496,7 @@ if upload_file is not None:
             st.session_state.show_results = False
 
         st.button(
-            "🔄 拍摄新书页",
+            "🕹️ 拍摄新书页",
             on_click=reset_all,
             use_container_width=True,
             type="secondary",
@@ -450,16 +564,20 @@ else:
     st.markdown(
         """
     <div style="text-align:center;padding:3rem 1.5rem;
-                background:rgba(20,20,40,0.35);border-radius:16px;
-                border:1px solid rgba(255,255,255,0.05);margin-top:0.5rem;">
-        <div style="font-size:3rem;margin-bottom:0.8rem;opacity:0.3;">📖</div>
-        <div style="color:rgba(255,255,255,0.5);font-size:0.95rem;font-weight:600;margin-bottom:0.6rem;">
-            开始你的沉浸式阅读之旅
+                background:#000000;border-radius:0px;
+                border:3px solid #0000ff;margin-top:0.5rem;
+                box-shadow:0 0 15px rgba(0,0,255,0.3),4px 4px 0px #000080;">
+        <div style="font-family:'Courier New',monospace;font-size:3rem;margin-bottom:0.8rem;opacity:0.9;
+                    text-shadow:0 0 15px rgba(255,255,0,0.5);">👾</div>
+        <div style="font-family:'Courier New',monospace;color:#ffff00;font-size:0.95rem;font-weight:700;margin-bottom:0.6rem;
+                    text-shadow:0 0 10px rgba(255,255,0,0.3);">
+            ▸ READY TO PLAY ◂
         </div>
-        <div style="color:rgba(255,255,255,0.2);font-size:0.78rem;line-height:2.2;">
-            点击上方 📤 <b>上传按钮</b> 拍照或选择书页照片<br>
+        <div style="font-family:'Courier New',monospace;color:#00ffff;font-size:0.78rem;line-height:2.2;
+                    text-shadow:0 0 5px rgba(0,255,255,0.3);">
+            点击上方 🕹️ <b>INSERT COIN</b> 拍照或选择书页照片<br>
             AI 将自动识别书中文字<br>
-            并直接根据原文为你生成视觉画作
+            并直接根据原文为你生成像素视觉画作
         </div>
     </div>
     """,
@@ -472,7 +590,7 @@ else:
 st.markdown(
     """
 <div class="footer">
-    VisionReader AI v4.0 · 随身视界阅读器<br>
+    🕹️ VisionReader AI v5.0 · 像素视界阅读器<br>
     Powered by Gemini Vision & Pollinations AI
 </div>
 """,
